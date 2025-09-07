@@ -1,11 +1,12 @@
 import os
 import time
+import json
+import numpy as np
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from documents import text_clining, vector, sim_cos
 from users.models import User
-# from django.contrib.postgres.fields import ArrayField  # Временно отключено для SQLite
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -66,7 +67,7 @@ class Document(models.Model):
     time_created = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время загрузки документа')
     data = models.FileField(upload_to="pdf_files/", verbose_name='документ')
     txt_file = models.FileField(upload_to='txt_files/', blank=True, null=True)
-    vector = models.TextField(blank=True, null=True, verbose_name='Векторное представление текста')  # Временно для SQLite
+    vector = models.TextField(blank=True, null=True, verbose_name='Векторное представление текста (JSON)')
     last_status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='status_changed_docs')
 
     class Meta:
@@ -88,6 +89,23 @@ class Document(models.Model):
                 return "Не удалось загрузить текст."
         return "Текстовый файл не найден."
 
+    def get_vector_array(self):
+        """Возвращает вектор как numpy array."""
+        if self.vector:
+            try:
+                vector_data = json.loads(self.vector)
+                return np.array(vector_data)
+            except (json.JSONDecodeError, ValueError):
+                return None
+        return None
+
+    def set_vector_array(self, vector_array):
+        """Устанавливает вектор из numpy array."""
+        if vector_array is not None:
+            self.vector = json.dumps(vector_array.tolist())
+        else:
+            self.vector = None
+
 
     def calculate_originality(self):
         """Метод для вычисления оригинальности с использованием косинусного сходства."""
@@ -97,35 +115,54 @@ class Document(models.Model):
         
         start_time = time.time()
 
-        if not self.result and self.vector is not None and len(self.vector) > 0:
-            query = f"""
-                SELECT *
-                FROM "Document"
-                WHERE id != {self.pk}   
-                ORDER BY vector::vector <-> '{self.vector}'
-                LIMIT 5;
-            """
-
-            near_documents = Document.objects.raw(query)
-
-            if not near_documents:
+        if not self.result and self.vector:
+            # Получаем вектор текущего документа
+            current_vector = self.get_vector_array()
+            if current_vector is None:
                 self.result = 100.0
                 new_status = Status.objects.get(pk=2)
                 self.status = new_status
                 self.save(update_fields=['result', 'status'])
                 return
-            
-            def get_file_text(file_path):
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    content = file.read()
-                return content
-            
-            similar_texts = [get_file_text(doc.txt_file.path) for doc in near_documents]
-            self_text = get_file_text(self.txt_file.path)
 
-            originality = sim_cos.calculate_originality_large_texts(self_text, similar_texts, shingle_size=1)
+            # Находим похожие документы по косинусному сходству
+            similar_docs = []
+            all_docs = Document.objects.exclude(id=self.pk).exclude(vector__isnull=True)
+            
+            for doc in all_docs:
+                doc_vector = doc.get_vector_array()
+                if doc_vector is not None:
+                    # Вычисляем косинусное сходство
+                    similarity = self._cosine_similarity(current_vector, doc_vector)
+                    if similarity > 0.7:  # Порог схожести
+                        similar_docs.append((doc, similarity))
 
-            self.result = originality
+            # Сортируем по убыванию схожести и берем топ-5
+            similar_docs.sort(key=lambda x: x[1], reverse=True)
+            similar_docs = similar_docs[:5]
+
+            if not similar_docs:
+                self.result = 100.0
+            else:
+                # Используем текстовый анализ для точного расчета
+                def get_file_text(file_path):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as file:
+                            return file.read()
+                    except:
+                        return ""
+                
+                if self.txt_file:
+                    self_text = get_file_text(self.txt_file.path)
+                    similar_texts = [get_file_text(doc[0].txt_file.path) for doc in similar_docs if doc[0].txt_file]
+                    
+                    if similar_texts:
+                        originality = sim_cos.calculate_originality_large_texts(self_text, similar_texts, shingle_size=1)
+                        self.result = max(0.0, min(100.0, originality))  # Ограничиваем от 0 до 100
+                    else:
+                        self.result = 100.0
+                else:
+                    self.result = 100.0
 
             new_status = Status.objects.get(pk=2)
             self.status = new_status
@@ -134,6 +171,22 @@ class Document(models.Model):
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"Время расчета оригинальности текста: {elapsed_time:.4f} секунд")
+
+    def _cosine_similarity(self, vec1, vec2):
+        """Вычисляет косинусное сходство между двумя векторами."""
+        try:
+            # Нормализуем векторы
+            norm1 = np.linalg.norm(vec1)
+            norm2 = np.linalg.norm(vec2)
+            
+            if norm1 == 0 or norm2 == 0:
+                return 0.0
+            
+            # Вычисляем косинусное сходство
+            similarity = np.dot(vec1, vec2) / (norm1 * norm2)
+            return float(similarity)
+        except:
+            return 0.0
 
 @receiver(post_save, sender=Document)
 def create_text_document(sender, instance, created, **kwargs):
@@ -148,7 +201,14 @@ def create_text_document(sender, instance, created, **kwargs):
                 
             instance.txt_file = f"txt_files/{txt_filename}"
 
-            instance.vector = vector.process_text(txt_file_path)
+            # Обрабатываем текст и создаем вектор
+            try:
+                vector_array = vector.process_text(txt_file_path)
+                instance.set_vector_array(vector_array)
+            except Exception as e:
+                print(f"Ошибка при создании вектора: {e}")
+                instance.vector = None
+            
             instance.save()
 
         except Exception as e:
@@ -157,7 +217,7 @@ def create_text_document(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Document)
 def calculate_originality_on_save(sender, instance, created, **kwargs):
-    if created and instance.vector is not None and len(instance.vector) > 0:
+    if created:
         instance.calculate_originality()
 
 
