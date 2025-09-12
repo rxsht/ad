@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Полностью рабочий скрипт для выявления плагиата текста
-Автор: AI Assistant
-Версия: 1.0
-"""
-
 import sys
 import os
 import sqlite3
@@ -257,3 +251,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
