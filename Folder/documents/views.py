@@ -17,11 +17,17 @@ from django.core.paginator import Paginator
 
 def download_file(request, document_id):
     document = Document.objects.get(id=document_id)
+    
+    # Обрабатываем случай, когда result может быть None
+    result_value = document.result if document.result is not None else 0
+    result_float = float(result_value) if result_value is not None else 0.0
+    result_int = int(result_float)
+    
     context = {
         'document': document,
-        'result': int(document.result),
-        'similarity': 100 - int(document.result),
-        'doc_similarity': 100 - document.result,  
+        'result': result_int,
+        'similarity': 100 - result_int,
+        'doc_similarity': 100 - result_float if result_value is not None else 100,  
     }
     print(context['doc_similarity'])
     return render(request, 'documents/file.html', context)

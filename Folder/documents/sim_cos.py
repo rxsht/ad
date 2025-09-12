@@ -14,7 +14,7 @@ def coef_similarity_hashed(shingles1, shingles2):
     Рассчитывает коэффициент схожести для двух наборов хэшированных шинглов.
     """
     intersection = len(shingles1 & shingles2)
-    union = len(shingles1) # shingles1 | shingles2
+    union = len(shingles1 | shingles2)  # Исправлено: теперь используется объединение множеств
     return intersection / union if union > 0 else 0
 
 def calculate_originality_large_texts(user_doc, similar_docs, shingle_size=5):

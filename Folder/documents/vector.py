@@ -39,12 +39,12 @@ def split_text_to_sentences(block):
 
         return sentences
 
-def process_text(text_content):
+def process_text(txt_filename):
     """
     Генерирует вектор документа, усредняя векторы предложений и блоков.
     """
     # Разделяем текст на главы
-    chapters = extract_chapters_from_txt(text_content)
+    chapters = extract_chapters_from_txt(txt_filename)
 
     # Генерация векторов для каждого блока
     all_chapter_vectors = []
@@ -52,16 +52,22 @@ def process_text(text_content):
       
         sentences = split_text_to_sentences(chapter_content+chapter_title)
         
-        # Генерация векторов для каждого предложения
-        sentence_vectors = [model.encode(sentence) for sentence in sentences]
+        # Фильтруем пустые предложения
+        sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
         
-        
-        chapter_vector = np.mean(sentence_vectors, axis=0)
-        all_chapter_vectors.append(chapter_vector)
+        if sentences:  # Только если есть предложения
+            # Генерация векторов для каждого предложения
+            sentence_vectors = [model.encode(sentence) for sentence in sentences]
+            
+            chapter_vector = np.mean(sentence_vectors, axis=0)
+            all_chapter_vectors.append(chapter_vector)
     
     # Усредняем векторы для всех глав, чтобы получить финальный вектор документа
-    document_vector = np.mean(all_chapter_vectors, axis=0)
-    return document_vector.tolist()  # Возвращаем вектор документа в виде списка
+    if all_chapter_vectors:
+        document_vector = np.mean(all_chapter_vectors, axis=0)
+        return document_vector  # Возвращаем numpy array
+    else:
+        return None  # Если нет векторов, возвращаем None
 
 # # Пример использования
 # txt_filename = 'output.txt'  # Укажите путь к вашему текстовому файлу

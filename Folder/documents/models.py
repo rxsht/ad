@@ -61,7 +61,7 @@ class SimilarDocument(models.Model):
 class Document(models.Model):
     user = models.ForeignKey(to=User, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True, unique=True, verbose_name='Название')
-    result = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True, verbose_name='Оригинальность')
+    result = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, verbose_name='Оригинальность')
     status = models.ForeignKey(to=Status, default=1, on_delete=models.CASCADE)
     type = models.ForeignKey(to=Type, on_delete=models.CASCADE, default=1)
     time_created = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время загрузки документа')
@@ -115,7 +115,7 @@ class Document(models.Model):
         
         start_time = time.time()
 
-        if not self.result and self.vector:
+        if self.vector:
             # Получаем вектор текущего документа
             current_vector = self.get_vector_array()
             if current_vector is None:
@@ -164,6 +164,12 @@ class Document(models.Model):
                 else:
                     self.result = 100.0
 
+            new_status = Status.objects.get(pk=2)
+            self.status = new_status
+            self.save(update_fields=['result', 'status'])
+        else:
+            # Если нет вектора, устанавливаем оригинальность 100%
+            self.result = 100.0
             new_status = Status.objects.get(pk=2)
             self.status = new_status
             self.save(update_fields=['result', 'status'])
