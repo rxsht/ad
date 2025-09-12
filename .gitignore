@@ -10,5 +10,3 @@ __pycache__/
 #django stuff
 db.sqlite3
 media/
-
-f
