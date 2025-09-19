@@ -186,7 +186,7 @@
                    </div>
                    <div class="cab__item-block">
                      <div>Оригинальность</div>
-                     <div class="js-modal-doc-orig">{% if document.status.id == 1 %}—{%else%}{{document.result}}%{% endif %}</div>
+                     <div class="js-modal-doc-orig">{% if document.status.id == 1 %}—{%else%}{{document.result|floatformat:2}}%{% endif %}</div>
                    </div>
                    <div class="cab-results__more more-btns">
                      <button type="button" class="more-btns__btn">
@@ -249,7 +249,7 @@
                    </div>
                    <div class="cab__item-block">
                      <div>Оригинальность</div>
-                     <div class="js-modal-doc-orig">{% if document.status.id == 1 %}—{%else%}{{document.result}}%{% endif %}</div>
+                     <div class="js-modal-doc-orig">{% if document.status.id == 1 %}—{%else%}{{document.result|floatformat:2}}%{% endif %}</div>
                    </div>
                    <div class="cab-results__more more-btns">
                      <button type="button" class="more-btns__btn">
@@ -434,7 +434,7 @@
                  
                </div>
                {% endfor %}
-               <input name="status" value="1" id="id_status" type="hidden">
+               <input name="status" value="2" id="id_status" type="hidden">
                
              </div>
            </div>

@@ -193,7 +193,7 @@
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Оригинальность</div>
-                    <div class='js-modal-doc-orig'>{{document.result}}</div>
+                    <div class='js-modal-doc-orig'>{{document.result|floatformat:2}}</div>
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Название</div>
@@ -359,7 +359,8 @@
     </button>
     <div class="modal-load__container">
       <h2 class="modal-load__title">Загрузка документа</h2>
-      <form class="modal-load__form" id="modal-doc-form">
+      <form method="post" enctype="multipart/form-data" class="modal-load__form" id="modal-doc-form" action="{% url 'documents:cabinet' %}">
+        {% csrf_token %}
         <div class="modal-load__input input">
           <label class="input__label" for="name">Название работы <span>*</span></label>
           <input autocomplete="off" class="input__input" type="text" placeholder="Название работы" name="name" />
@@ -422,10 +423,11 @@
               Допустимый формат документа: *pdf <br />
               Максимальный размер: 10 МБ
             </p>
-            <input type="file" hidden name="file" accept="application/pdf" />
+            <input type="file" hidden name="data" accept="application/pdf" />
           </div>
           <div class="drag-area__files"></div>
         </div>
+        <input name="status" value="2" id="id_status" type="hidden">
         <button class="modal-load__btn btn btn-def" type="submit" form="modal-doc-form">Проверить</button>
       </form>
     </div>

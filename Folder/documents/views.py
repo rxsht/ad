@@ -27,9 +27,8 @@ def download_file(request, document_id):
         'document': document,
         'result': result_int,
         'similarity': 100 - result_int,
-        'doc_similarity': 100 - result_float if result_value is not None else 100,  
+        'doc_similarity': round(100 - result_float, 2) if result_value is not None else 100,  
     }
-    print(context['doc_similarity'])
     return render(request, 'documents/file.html', context)
 
 @login_required

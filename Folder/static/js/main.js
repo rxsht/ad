@@ -29,10 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* eslint-disable func-names */
 const dragArea = document.querySelector('.drag-area');
+if (!dragArea) return; // Выходим если элемент не найден
+
 const button = dragArea.querySelector('button');
 const input = dragArea.querySelector('input');
 const fileDisplay = document.querySelector('.drag-area__files');
 const dragAreaForm = document.querySelector('.drag-area__form');
+
+if (!button || !input || !fileDisplay || !dragAreaForm) {
+  console.error('Не все элементы drag-area найдены');
+  return;
+}
 function clickBtn() {
   button.addEventListener('click', () => input.click());
 }
