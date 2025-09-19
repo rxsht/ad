@@ -4,9 +4,9 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: plagiarism_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
@@ -21,11 +21,13 @@ services:
       - "6379:6379"
 
   web:
-    image: aliaksandr1403/plagiarism_detection:latest
+    build: .
     container_name: django_web
     command: gunicorn Folder.app.wsgi:application --bind 0.0.0.0:8000 --workers 3 --chdir /app/Folder
     volumes:
       - .:/app
+      - static_volume:/app/Folder/staticfiles
+      - media_volume:/app/Folder/media
     ports:
       - "8080:8000"
     depends_on:
@@ -34,11 +36,11 @@ services:
     environment:
       - PYTHONPATH=/app/Folder
       - DEBUG=0
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://postgres:password@db:5432/plagiarism_db
       - CELERY_BROKER_URL=redis://redis:6379/0
 
   celery:
-    image: aliaksandr1403/plagiarism_detection:latest
+    build: .
     container_name: celery_worker
     command: celery -A Folder.app worker --loglevel=info
     volumes:
@@ -49,7 +51,9 @@ services:
     environment:
       - PYTHONPATH=/app/Folder
       - CELERY_BROKER_URL=redis://redis:6379/0
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgres://postgres:password@db:5432/plagiarism_db
 
 volumes:
   pgvector_data:
+  static_volume:
+  media_volume:

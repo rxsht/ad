@@ -142,6 +142,10 @@ STATICFILES_DIRS = [
     Path(__file__).resolve().parent.parent / "static"
 ]
 
+# Для продакшена - обслуживание статических файлов
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 MEDIA_URL = 'media/'
 MEDIA_ROOT = Path(__file__).resolve().parent.parent / "media"
 
