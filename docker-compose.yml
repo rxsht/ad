@@ -1,6 +1,6 @@
 services:
   db:
-    image: ankane/pgvector  # Postgres с расширением pgvector
+    image: ankane/pgvector
     container_name: postgres_db
     restart: always
     environment:
@@ -12,6 +12,11 @@ services:
       - "5432:5432"
     volumes:
       - pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
@@ -19,9 +24,14 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
-    image: aliaksandr1403/plagiarism_detection:latest
+    build: .
     container_name: django_web
     command: gunicorn Folder.app.wsgi:application --bind 0.0.0.0:8000 --workers 3 --chdir /app/Folder
     volumes:
@@ -29,27 +39,33 @@ services:
     ports:
       - "8080:8000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      - PYTHONPATH=/app/Folder
-      - DEBUG=0
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - CELERY_BROKER_URL=redis://redis:6379/0
+      PYTHONPATH: /app/Folder
+      PYTHONUNBUFFERED: "1"
+      DEBUG: "0"
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      CELERY_BROKER_URL: redis://redis:6379/0
 
   celery:
-    image: aliaksandr1403/plagiarism_detection:latest
+    build: .
     container_name: celery_worker
     command: celery -A Folder.app worker --loglevel=info
     volumes:
       - .:/app
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      - PYTHONPATH=/app/Folder
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      PYTHONPATH: /app/Folder
+      PYTHONUNBUFFERED: "1"
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      CELERY_BROKER_URL: redis://redis:6379/0
 
 volumes:
   pgvector_data:
