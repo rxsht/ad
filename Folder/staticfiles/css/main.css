@@ -1526,8 +1526,8 @@ main {
     padding: 12px;
   }
   .modal-doc__item {
-    -ms-grid-columns: (1fr)[1];
-    grid-template-columns: repeat(1, 1fr);
+    -ms-grid-columns: 1fr;
+    grid-template-columns: 1fr;
   }
   .modal-doc__item:not(:last-child) {
     margin-bottom: 10px;
@@ -1913,25 +1913,20 @@ main {
   color: #d97706;
   border: 1px solid #f59e0b;
 }
-.cab__item.--verified .cab__item-status {
+.cab__item.--success .cab__item-status { /* Проверен: светло-голубой */
+  color: #0284c7;
+  background-color: #e0f2fe;
+  border: 1px solid #38bdf8;
+}
+.cab__item.--accepted .cab__item-status { /* Зачтен: салатовый */
   color: #047857;
   background-color: #d1fae5;
   border: 1px solid #10b981;
 }
-.cab__item.--notCredited .cab__item-status {
+.cab__item.--rejected .cab__item-status {
   color: #dc2626;
   background-color: #fee2e2;
   border: 1px solid #ef4444;
-}
-.cab__item.--defense .cab__item-status {
-  color: #7c3aed;
-  background-color: #ede9fe;
-  border: 1px solid #8b5cf6;
-}
-.cab__item.--passed .cab__item-status {
-  color: #0891b2;
-  background-color: #cffafe;
-  border: 1px solid #06b6d4;
 }
 .cab__item div:nth-child(4) {
   text-align: center;
@@ -2074,8 +2069,8 @@ main {
     line-height: 18px;
   }
   .cab__item {
-    -ms-grid-columns: (1fr)[1];
-    grid-template-columns: repeat(1, 1fr);
+    -ms-grid-columns: 1fr;
+    grid-template-columns: 1fr;
     background-color: #ffffff;
     border-radius: 4px;
     padding: 0;
@@ -2411,8 +2406,8 @@ main {
 }
 @media screen and (max-width: 1100px) {
   .cab-role__block {
-    -ms-grid-columns: (1fr)[1];
-    grid-template-columns: repeat(1, 1fr);
+    -ms-grid-columns: 1fr;
+    grid-template-columns: 1fr;
     background-color: #ffffff;
     row-gap: 12px;
     border-radius: 4px;
@@ -2549,8 +2544,8 @@ main {
     column-gap: 15px;
   }
   .cab-results__block {
-    -ms-grid-columns: (1fr)[1];
-    grid-template-columns: repeat(1, 1fr);
+    -ms-grid-columns: 1fr;
+    grid-template-columns: 1fr;
     background-color: #ffffff;
     border-radius: 4px;
     row-gap: 12px;
@@ -2777,8 +2772,8 @@ main {
 .info__results-item {
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: (auto)[3];
-  grid-template-columns: repeat(3, auto);
+  -ms-grid-columns: auto auto auto;
+  grid-template-columns: auto auto auto;
   -webkit-column-gap: 3.4mm;
   -moz-column-gap: 3.4mm;
   column-gap: 3.4mm;

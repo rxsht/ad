@@ -1,4 +1,5 @@
 from django.shortcuts import redirect, render
+from django.db.models import Q
 from documents.models import Document, Status
 from documents.forms import DocumentForm
 from django.views.generic import View
@@ -34,7 +35,8 @@ def download_file(request, document_id):
 @login_required
 def change_status(request, document_id):
     document = Document.objects.get(id=document_id)
-    document.status = Status.objects.get(pk=3)
+    # На проверке
+    document.status = Status.objects.get(pk=1)
     document.last_status_changed_by = request.user
     document.save()
     return redirect('documents:results') 
@@ -42,7 +44,8 @@ def change_status(request, document_id):
 @login_required
 def change_statusa(request, document_id):
     document = Document.objects.get(id=document_id)
-    document.status = Status.objects.get(pk=4) 
+    # Зачтен
+    document.status = Status.objects.get(pk=3) 
     document.last_status_changed_by = request.user
     document.save()
     return redirect('documents:results')
@@ -50,7 +53,8 @@ def change_statusa(request, document_id):
 @login_required
 def change_statusb(request, document_id):
     document = Document.objects.get(id=document_id)
-    document.status = Status.objects.get(pk=5)
+    # Не зачтен
+    document.status = Status.objects.get(pk=4)
     document.last_status_changed_by = request.user
     document.save()
     return redirect('documents:results')   
@@ -69,10 +73,15 @@ def cabinet(request):
             return HttpResponseRedirect(reverse('documents:cabinet'))
     else:
         form = DocumentForm()
-    if query:
-        documents = q_search(query, request.user)  
+    if request.user.is_staff or request.user.is_superuser:
+        base_qs = Document.objects.all()
     else:
-        documents = Document.objects.filter(user=request.user)
+        base_qs = Document.objects.filter(Q(user=request.user) | Q(user__isnull=True))
+
+    if query:
+        documents = base_qs.filter(q_search(query, request.user).query)
+    else:
+        documents = base_qs
 
     
     page_number = request.GET.get('page', 1)
@@ -94,10 +103,10 @@ def cabinet(request):
 def results(request):
     query = request.GET.get('q', '')  
     is_searching = bool(query) 
-    documents = Document.objects.filter(status_id=3)
+    documents = Document.objects.filter(status_id=1)
 
     if query:
-        documents = q_search_by_fio(query).filter(status_id=3)
+        documents = q_search_by_fio(query).filter(status_id=1)
 
     page_number = request.GET.get('page', 1)
     paginator = Paginator(documents, 10) 

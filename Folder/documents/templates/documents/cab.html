@@ -12,7 +12,7 @@
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
    <link rel="stylesheet" href="{%static "css/vendor.css"%}" />
-   <link rel="stylesheet" href="{%static "css/main.css"%}" />
+  <link rel="stylesheet" href="{%static "css/main.css"%}?v=20251003" />
  </head>
  
    <body>
@@ -165,10 +165,12 @@
                </button>
              </div>
            </div>
-           <div class="cab__content">
-               <div class="cab__content-none" >Документы отсутствуют</div>
-          
-                 {% for document in documents %} 
+          <div class="cab__content">
+              {% if documents|length == 0 %}
+              <div class="cab__content-none" >Документы отсутствуют</div>
+              {% endif %}
+              
+                {% for document in documents %} 
                    <div class="cab__item --{{document.status.html_clase}}" >
                      <div class="cab__item-block">
                        <a href="{% url 'documents:change_status' document.id %}" class="js-doc-id" style="display: none"></a>
@@ -186,7 +188,7 @@
                    </div>
                    <div class="cab__item-block">
                      <div>Оригинальность</div>
-                     <div class="js-modal-doc-orig">{% if document.status.id == 1 %}—{%else%}{{document.result|floatformat:2}}%{% endif %}</div>
+                      <div class="js-modal-doc-orig">{% if document.result is None %}—{% else %}{{ document.result|floatformat:2 }}%{% endif %}</div>
                    </div>
                    <div class="cab-results__more more-btns">
                      <button type="button" class="more-btns__btn">
