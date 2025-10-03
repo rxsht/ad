@@ -1,8 +1,27 @@
-#python stuff
+# Python
 venv/
-.pylintrc
+.venv/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pylintrc
 
-#ide stuff
+# Database
+*.sqlite3
+*.db
+
+# IDE
 .vscode
 .idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Django
+staticfiles/
+media/

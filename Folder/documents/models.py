@@ -9,6 +9,7 @@ from documents import text_clining, vector, sim_cos
 from users.models import User
 from django.contrib import admin
 from django.utils.html import format_html
+from documents.vector_models import DocumentVector, DocumentSimilarity, DocumentBatch, DocumentProcessingQueue
 
 # Глобальные переменные для косинусного сходства и параметров
 COSIM_THRESHOLD = 0.9  # Порог схожести для определения плагиата

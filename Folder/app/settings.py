@@ -92,8 +92,15 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'plagiarism_db',
+        'USER': 'plagiarism_user',
+        'PASSWORD': 'plagiarism_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {},
+        'CONN_MAX_AGE': 60,
+        'CONN_HEALTH_CHECKS': True,
     }
 }
 
