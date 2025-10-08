@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 import mimetypes
 
 mimetypes.add_type("application/javascript", ".js", True)
@@ -28,12 +28,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#uw1jpc^-n9834e=h1jyeq2d34r@-xzo@0x1q8pkp40cd2#7kk'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-#uw1jpc^-n9834e=h1jyeq2d34r@-xzo@0x1q8pkp40cd2#7kk')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'antiplagiat.bsuir.by']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -46,13 +46,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    "debug_toolbar",
-    
     'documents',
     'users',
-
-    
 ]
+
+# Debug toolbar только в DEBUG режиме
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,9 +62,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
+
+# Debug toolbar только в DEBUG режиме
+if DEBUG:
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = 'app.urls'
 
@@ -90,19 +92,45 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'plagiarism_db',
-        'USER': 'plagiarism_user',
-        'PASSWORD': 'plagiarism_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'OPTIONS': {},
-        'CONN_MAX_AGE': 60,
-        'CONN_HEALTH_CHECKS': True,
+# Поддержка DATABASE_URL для Docker
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Парсим DATABASE_URL (формат: postgres://user:pass@host:port/dbname)
+    import re
+    match = re.match(r'postgres://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+    if match:
+        user, password, host, port, dbname = match.groups()
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': dbname,
+                'USER': user,
+                'PASSWORD': password,
+                'HOST': host,
+                'PORT': port,
+                'OPTIONS': {},
+                'CONN_MAX_AGE': 60,
+                'CONN_HEALTH_CHECKS': True,
+            }
+        }
+    else:
+        raise ValueError(f'Invalid DATABASE_URL format: {DATABASE_URL}')
+else:
+    # Fallback для локальной разработки
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'plagiarism_db'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+            'OPTIONS': {},
+            'CONN_MAX_AGE': 60,
+            'CONN_HEALTH_CHECKS': True,
+        }
     }
-}
 
 
 # Password validation
@@ -174,6 +202,7 @@ AUTHENTICATION_BACKENDS = [
 
 
 # Celery
-CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)

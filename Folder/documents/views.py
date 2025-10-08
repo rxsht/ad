@@ -126,10 +126,11 @@ def cabinet(request):
 def results(request):
     query = request.GET.get('q', '')  
     is_searching = bool(query) 
-    documents = Document.objects.filter(status_id=1)
+    # Показываем документы со статусами: 1 (На проверке) и 2 (Проверен)
+    documents = Document.objects.filter(status_id__in=[1, 2])
 
     if query:
-        documents = q_search_by_fio(query).filter(status_id=1)
+        documents = q_search_by_fio(query).filter(status_id__in=[1, 2])
 
     page_number = request.GET.get('page', 1)
     paginator = Paginator(documents, 10) 

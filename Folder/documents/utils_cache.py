@@ -24,10 +24,20 @@ def get_redis_client():
     
     if redis_client is None:
         try:
+            # Парсим CELERY_BROKER_URL или используем defaults
+            broker_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+            # Простой парсинг redis://host:port/db
+            import re
+            match = re.match(r'redis://([^:]+):(\d+)/(\d+)', broker_url)
+            if match:
+                host, port, db = match.groups()
+            else:
+                host, port, db = 'localhost', '6379', '0'
+            
             redis_client = redis.Redis(
-                host='localhost',  # В Docker будет 'redis'
-                port=6379,
-                db=0,
+                host=host,
+                port=int(port),
+                db=int(db),
                 decode_responses=False,
                 socket_connect_timeout=1,
                 socket_timeout=1
