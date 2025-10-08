@@ -1,33 +1,28 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+Продвинутый детектор плагиата с множественными метриками
+"""
 
-import sys
 import os
-import sqlite3
-import hashlib
-import numpy as np
 import re
-from decimal import Decimal
-from typing import List, Tuple, Dict, Optional
+import numpy as np
+from typing import List, Tuple, Dict
 from collections import Counter
 
-# Добавляем путь к Django проекту
-sys.path.append('Folder')
-
-# Настраиваем Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
-
-import django
-django.setup()
-
 from documents.models import Document
-from documents import vector
-from documents.sim_cos import calculate_originality_large_texts, generate_hashed_shingles, coef_similarity_hashed
+from documents.sim_cos import (
+    calculate_originality_large_texts, 
+    generate_hashed_shingles, 
+    coef_similarity_hashed
+)
+from documents.utils_cache import get_cached_vector, cache_vector, get_cached_similarity, cache_similarity_result
+from .base_detector import BasePlagiarismDetector
 
-class AdvancedPlagiarismDetector:
+
+class AdvancedPlagiarismDetector(BasePlagiarismDetector):
     """Продвинутый класс для выявления плагиата в текстах"""
     
     def __init__(self):
+        super().__init__()
         self.shingle_sizes = [1, 3, 5]  # Разные размеры шинглов
         self.similarity_threshold = 0.6  # Порог схожести для векторов
         self.originality_threshold = 85.0  # Порог оригинальности
@@ -40,9 +35,6 @@ class AdvancedPlagiarismDetector:
         
         # Удаляем лишние пробелы и переносы строк
         text = re.sub(r'\s+', ' ', text)
-        
-        # Удаляем знаки препинания (опционально)
-        # text = re.sub(r'[^\w\s]', '', text)
         
         return text.strip()
     
@@ -141,7 +133,13 @@ class AdvancedPlagiarismDetector:
                 result['message'] = 'TXT файл не найден'
                 return result
             
-            txt_path = f"Folder/media/{document.txt_file}"
+            # Получаем путь к txt файлу (поддержка относительных и абсолютных путей)
+            try:
+                txt_path = document.txt_file.path
+            except Exception:
+                # Fallback если .path не работает
+                txt_path = os.path.join('media', str(document.txt_file))
+            
             if not os.path.exists(txt_path):
                 result['status'] = 'error'
                 result['message'] = f'TXT файл не существует: {txt_path}'
@@ -172,7 +170,12 @@ class AdvancedPlagiarismDetector:
                 
                 for doc, vector_similarity in similar_docs:
                     if doc.txt_file:
-                        similar_txt_path = f"Folder/media/{doc.txt_file}"
+                        # Получаем путь с обработкой ошибок
+                        try:
+                            similar_txt_path = doc.txt_file.path
+                        except Exception:
+                            similar_txt_path = os.path.join('media', str(doc.txt_file))
+                        
                         if os.path.exists(similar_txt_path):
                             with open(similar_txt_path, 'r', encoding='utf-8') as f:
                                 similar_text = f.read()
@@ -260,23 +263,46 @@ class AdvancedPlagiarismDetector:
             }
     
     def _find_similar_documents(self, document: Document) -> List[Tuple[Document, float]]:
-        """Находит похожие документы по косинусному сходству векторов"""
+        """Находит похожие документы по косинусному сходству векторов с кэшированием"""
         similar_docs = []
         
         if not document.vector:
             return similar_docs
         
         try:
-            current_vector = document.get_vector_array()
+            # Пробуем получить вектор из кэша
+            current_vector = get_cached_vector(document.id)
+            if current_vector is None:
+                current_vector = document.get_vector_array()
+                if current_vector is not None:
+                    # Кэшируем вектор для будущих запросов
+                    cache_vector(document.id, current_vector)
+            
             if current_vector is None:
                 return similar_docs
             
             all_docs = Document.objects.exclude(id=document.id).exclude(vector__isnull=True)
             
             for doc in all_docs:
-                doc_vector = doc.get_vector_array()
+                # Проверяем кэш схожести
+                cached_sim = get_cached_similarity(document.id, doc.id)
+                if cached_sim is not None:
+                    if cached_sim > self.similarity_threshold:
+                        similar_docs.append((doc, cached_sim))
+                    continue
+                
+                # Получаем вектор с кэшированием
+                doc_vector = get_cached_vector(doc.id)
+                if doc_vector is None:
+                    doc_vector = doc.get_vector_array()
+                    if doc_vector is not None:
+                        cache_vector(doc.id, doc_vector)
+                
                 if doc_vector is not None:
                     similarity = self._cosine_similarity(current_vector, doc_vector)
+                    # Кэшируем результат сравнения
+                    cache_similarity_result(document.id, doc.id, similarity)
+                    
                     if similarity > self.similarity_threshold:
                         similar_docs.append((doc, similarity))
             
@@ -286,119 +312,3 @@ class AdvancedPlagiarismDetector:
             print(f"Ошибка при поиске похожих документов: {e}")
         
         return similar_docs
-    
-    def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
-        """Вычисляет косинусное сходство между двумя векторами"""
-        try:
-            norm1 = np.linalg.norm(vec1)
-            norm2 = np.linalg.norm(vec2)
-            
-            if norm1 == 0 or norm2 == 0:
-                return 0.0
-            
-            similarity = np.dot(vec1, vec2) / (norm1 * norm2)
-            return float(similarity)
-        except:
-            return 0.0
-    
-    def generate_detailed_report(self) -> Dict:
-        """Генерирует детальный отчет о плагиате"""
-        results = []
-        
-        documents = Document.objects.all().order_by('id')
-        
-        for doc in documents:
-            print(f"Анализируем документ: {doc.name} (ID: {doc.id})")
-            result = self.detect_plagiarism(doc.id)
-            results.append(result)
-            print(f"  Результат: {result['message']}")
-            print()
-        
-        # Статистика
-        total_docs = len(results)
-        success_docs = [r for r in results if r.get('status') == 'success']
-        plagiarized_docs = [r for r in success_docs if r.get('is_plagiarized', False)]
-        error_docs = [r for r in results if r.get('status') == 'error']
-        warning_docs = [r for r in results if r.get('status') == 'warning']
-        
-        # Анализ рисков
-        risk_levels = {
-            'very_high': len([r for r in success_docs if r.get('plagiarism_risk') == 'very_high']),
-            'high': len([r for r in success_docs if r.get('plagiarism_risk') == 'high']),
-            'medium': len([r for r in success_docs if r.get('plagiarism_risk') == 'medium']),
-            'low': len([r for r in success_docs if r.get('plagiarism_risk') == 'low']),
-            'very_low': len([r for r in success_docs if r.get('plagiarism_risk') == 'very_low'])
-        }
-        
-        avg_originality = np.mean([r.get('originality', 0) for r in success_docs])
-        
-        report = {
-            'summary': {
-                'total_documents': total_docs,
-                'successful_analyses': len(success_docs),
-                'plagiarized_documents': len(plagiarized_docs),
-                'error_documents': len(error_docs),
-                'warning_documents': len(warning_docs),
-                'average_originality': float(avg_originality),
-                'plagiarism_rate': (len(plagiarized_docs) / len(success_docs) * 100) if success_docs else 0
-            },
-            'risk_analysis': risk_levels,
-            'detailed_results': results
-        }
-        
-        return report
-
-def main():
-    """Основная функция для запуска продвинутого анализа плагиата"""
-    print("=== ПРОДВИНУТАЯ СИСТЕМА ВЫЯВЛЕНИЯ ПЛАГИАТА ===\n")
-    
-    detector = AdvancedPlagiarismDetector()
-    
-    # Генерируем детальный отчет
-    print("Генерируем детальный отчет...")
-    report = detector.generate_detailed_report()
-    
-    # Выводим сводку
-    summary = report['summary']
-    print(f"\n=== СВОДНЫЙ ОТЧЕТ ===")
-    print(f"Всего документов: {summary['total_documents']}")
-    print(f"Успешно проанализировано: {summary['successful_analyses']}")
-    print(f"Документов с плагиатом: {summary['plagiarized_documents']}")
-    print(f"Документов с ошибками: {summary['error_documents']}")
-    print(f"Документов с предупреждениями: {summary['warning_documents']}")
-    print(f"Средняя оригинальность: {summary['average_originality']:.2f}%")
-    print(f"Процент плагиата: {summary['plagiarism_rate']:.2f}%")
-    
-    # Анализ рисков
-    print(f"\n=== АНАЛИЗ РИСКОВ ===")
-    risk_analysis = report['risk_analysis']
-    for risk_level, count in risk_analysis.items():
-        print(f"{risk_level.replace('_', ' ').title()}: {count} документов")
-    
-    # Детальные результаты
-    print(f"\n=== ДЕТАЛЬНЫЕ РЕЗУЛЬТАТЫ ===")
-    for result in report['detailed_results']:
-        if result['status'] == 'success':
-            print(f"\n📄 Документ '{result['document_name']}' (ID: {result['document_id']}):")
-            print(f"  Оригинальность: {result['originality']:.2f}%")
-            print(f"  Схожесть: {result['similarity']:.2f}%")
-            print(f"  Риск плагиата: {result['plagiarism_risk'].replace('_', ' ').title()}")
-            print(f"  Статус: {'🚨 ПЛАГИАТ' if result['is_plagiarized'] else '✅ ОРИГИНАЛ'}")
-            print(f"  Сообщение: {result['message']}")
-            
-            if result['similar_documents']:
-                print(f"  🔍 Похожие документы:")
-                for sim_doc in result['similar_documents']:
-                    print(f"    - {sim_doc['name']} (ID: {sim_doc['id']})")
-                    print(f"      Векторная схожесть: {sim_doc['vector_similarity']:.3f}")
-                    print(f"      Текстовая схожесть: {sim_doc['text_similarity']:.3f}")
-                    print(f"      Детальная схожесть:")
-                    for method, value in sim_doc['detailed_similarity'].items():
-                        print(f"        {method}: {value:.3f}")
-        elif result['status'] == 'warning':
-            print(f"\n⚠️ Предупреждение в документе '{result.get('document_name', 'Unknown')}' (ID: {result['document_id']}): {result['message']}")
-        else:
-            print(f"\n❌ Ошибка в документе '{result.get('document_name', 'Unknown')}' (ID: {result['document_id']}): {result['message']}")
-
-if __name__ == "__main__":
-    main()

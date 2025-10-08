@@ -70,6 +70,24 @@ class Document(models.Model):
     txt_file = models.FileField(upload_to='txt_files/', blank=True, null=True)
     vector = models.TextField(blank=True, null=True, verbose_name='Векторное представление текста (JSON)')
     last_status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='status_changed_docs')
+    
+    # Поля для асинхронной обработки через Celery
+    PROCESSING_STATUS_CHOICES = [
+        ('queue', 'В очереди'),
+        ('processing', 'Обрабатывается'),
+        ('completed', 'Завершено'),
+        ('failed', 'Ошибка'),
+    ]
+    processing_status = models.CharField(
+        max_length=20, 
+        choices=PROCESSING_STATUS_CHOICES, 
+        default='queue',
+        verbose_name='Статус обработки'
+    )
+    processing_started_at = models.DateTimeField(blank=True, null=True, verbose_name='Начало обработки')
+    processing_completed_at = models.DateTimeField(blank=True, null=True, verbose_name='Завершение обработки')
+    processing_error = models.TextField(blank=True, null=True, verbose_name='Ошибка обработки')
+    detailed_analysis = models.JSONField(blank=True, null=True, verbose_name='Детальный анализ плагиата')
 
     class Meta:
         db_table = 'Document'
@@ -195,37 +213,48 @@ class Document(models.Model):
         except:
             return 0.0
 
-@receiver(post_save, sender=Document)
-def create_text_document(sender, instance, created, **kwargs):
-    if created:
-        try:
-            text_content = text_clining.clean_text_from_pdf(os.path.join("media", instance.data.path))
-            txt_filename = f"{instance.name}.txt"
-            txt_file_path = os.path.join("media", "txt_files", txt_filename)
+# СИГНАЛЫ ОТКЛЮЧЕНЫ - ЛОГИКА ПЕРЕНЕСЕНА В CELERY ЗАДАЧИ (documents/tasks.py)
+# Теперь обработка происходит асинхронно через tasks.process_document_plagiarism
 
-            with open(txt_file_path, "w", encoding='utf-8') as text_file:
-                text_file.write(text_content)
-                
-            instance.txt_file = f"txt_files/{txt_filename}"
+# @receiver(post_save, sender=Document)
+# def create_text_document(sender, instance, created, **kwargs):
+#     """
+#     ОТКЛЮЧЕНО: Синхронная обработка блокировала запрос на 30-60 секунд
+#     ЗАМЕНЕНО НА: Celery задачу process_document_plagiarism
+#     """
+#     if created:
+#         try:
+#             text_content = text_clining.clean_text_from_pdf(os.path.join("media", instance.data.path))
+#             txt_filename = f"{instance.name}.txt"
+#             txt_file_path = os.path.join("media", "txt_files", txt_filename)
+#
+#             with open(txt_file_path, "w", encoding='utf-8') as text_file:
+#                 text_file.write(text_content)
+#                 
+#             instance.txt_file = f"txt_files/{txt_filename}"
+#
+#             # Обрабатываем текст и создаем вектор
+#             try:
+#                 vector_array = vector.process_text(txt_file_path)
+#                 instance.set_vector_array(vector_array)
+#             except Exception as e:
+#                 print(f"Ошибка при создании вектора: {e}")
+#                 instance.vector = None
+#             
+#             instance.save()
+#
+#         except Exception as e:
+#             print(f"Произошла ошибка при извлечении текста: {e}")
 
-            # Обрабатываем текст и создаем вектор
-            try:
-                vector_array = vector.process_text(txt_file_path)
-                instance.set_vector_array(vector_array)
-            except Exception as e:
-                print(f"Ошибка при создании вектора: {e}")
-                instance.vector = None
-            
-            instance.save()
 
-        except Exception as e:
-            print(f"Произошла ошибка при извлечении текста: {e}")
-
-
-@receiver(post_save, sender=Document)
-def calculate_originality_on_save(sender, instance, created, **kwargs):
-    if created:
-        instance.calculate_originality()
+# @receiver(post_save, sender=Document)
+# def calculate_originality_on_save(sender, instance, created, **kwargs):
+#     """
+#     ОТКЛЮЧЕНО: Синхронный расчёт оригинальности блокировал запрос
+#     ЗАМЕНЕНО НА: Celery задачу process_document_plagiarism
+#     """
+#     if created:
+#         instance.calculate_originality()
 
 
 @admin.register(Document)

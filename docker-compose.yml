@@ -67,5 +67,18 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       CELERY_BROKER_URL: redis://redis:6379/0
 
+  flower:
+    build: .
+    container_name: flower_monitor
+    command: celery -A Folder.app flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      PYTHONPATH: /app/Folder
+      CELERY_BROKER_URL: redis://redis:6379/0
+
 volumes:
   pgvector_data:

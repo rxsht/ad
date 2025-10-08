@@ -1911,22 +1911,22 @@ main {
 .cab__item.--queue .cab__item-status {
   background-color: #fef3c7;
   color: #d97706;
-  border: 1px solid #f59e0b;
+  border: none;
 }
 .cab__item.--success .cab__item-status { /* Проверен: светло-голубой */
   color: #0284c7;
   background-color: #e0f2fe;
-  border: 1px solid #38bdf8;
+  border: none;
 }
 .cab__item.--accepted .cab__item-status { /* Зачтен: салатовый */
   color: #047857;
   background-color: #d1fae5;
-  border: 1px solid #10b981;
+  border: none;
 }
 .cab__item.--rejected .cab__item-status {
   color: #dc2626;
   background-color: #fee2e2;
-  border: 1px solid #ef4444;
+  border: none;
 }
 .cab__item div:nth-child(4) {
   text-align: center;
@@ -2846,5 +2846,76 @@ main {
   hyphens: auto;
   vertical-align: bottom;
   width: 100%;
+}
+
+/* Индикаторы статуса обработки документов */
+.processing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.processing-queue {
+  background-color: #f5f5f5;
+  color: #404040;
+  border: 1px solid #d0d0d0;
+}
+
+.processing-active {
+  background-color: #f0f0f0;
+  color: #202020;
+  border: 1px solid #c0c0c0;
+}
+
+.processing-error {
+  background-color: #fafafa;
+  color: #505050;
+  border: 1px solid #d0d0d0;
+}
+
+/* SVG иконки спиннера */
+.spinner-icon,
+.error-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.spinner-icon {
+  color: #404040;
+}
+
+.spinner-icon.spinning {
+  animation: spin-rotate 1s linear infinite;
+}
+
+.error-icon {
+  color: #606060;
+}
+
+.processing-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+}
+
+.processing-spinner svg {
+  animation: spin-rotate 1.5s linear infinite;
+}
+
+/* Анимации */
+@keyframes spin-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 

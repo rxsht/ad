@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models import Q
 from documents.models import Document, Status
 from documents.forms import DocumentForm
@@ -15,6 +15,9 @@ from django.http import JsonResponse
 from documents.utils import q_search
 from documents.utils import q_search_by_fio
 from django.core.paginator import Paginator
+
+# Импорт Celery задачи
+from documents.tasks import process_document_plagiarism
 
 def download_file(request, document_id):
     document = Document.objects.get(id=document_id)
@@ -69,7 +72,27 @@ def cabinet(request):
         if form.is_valid():
             document = form.save(commit=False)
             document.user = request.user
+            document.processing_status = 'queue'
             document.save()
+            
+            # Пробуем отправить в Celery, если недоступен - fallback на синхронную обработку
+            try:
+                process_document_plagiarism.delay(document.id)
+                messages.success(request, f'Документ "{document.name}" загружен и отправлен на проверку')
+            except Exception as e:
+                # Если Celery/Redis недоступен - обрабатываем синхронно СРАЗУ
+                try:
+                    from documents.processing import process_document_sync
+                    # Обрабатываем документ синхронно (занимает 30-60 сек)
+                    result = process_document_sync(document.id)
+                    
+                    if result.get('status') == 'success':
+                        messages.success(request, f'Документ "{document.name}" обработан успешно. Оригинальность: {result.get("originality", "N/A")}%')
+                    else:
+                        messages.warning(request, f'Документ загружен, но обработка завершилась с предупреждением')
+                except Exception as sync_error:
+                    messages.error(request, f'Ошибка обработки: {str(sync_error)}')
+            
             return HttpResponseRedirect(reverse('documents:cabinet'))
     else:
         form = DocumentForm()
@@ -131,3 +154,38 @@ def logout_view(request):
     messages.success(request, f"{request.user.username}, Вы вышли из аккаунта")
     auth.logout(request)
     return render(request, 'users/main.html')
+
+
+@login_required
+def document_status(request, document_id):
+    """
+    API endpoint для получения статуса обработки документа
+    Используется для AJAX-опроса прогресса
+    """
+    try:
+        # Проверяем права доступа
+        if request.user.is_staff or request.user.is_superuser:
+            doc = get_object_or_404(Document, id=document_id)
+        else:
+            doc = get_object_or_404(Document, id=document_id, user=request.user)
+        
+        response_data = {
+            'document_id': doc.id,
+            'document_name': doc.name,
+            'processing_status': doc.processing_status,
+            'status_id': doc.status.id,
+            'status_name': doc.status.name,
+            'result': float(doc.result) if doc.result else None,
+            'processing_started_at': doc.processing_started_at.isoformat() if doc.processing_started_at else None,
+            'processing_completed_at': doc.processing_completed_at.isoformat() if doc.processing_completed_at else None,
+            'processing_error': doc.processing_error,
+            'detailed_analysis': doc.detailed_analysis
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=404)

@@ -17,6 +17,9 @@ urlpatterns = [
     path('change-statusb/<int:document_id>/', views.change_statusb, name='change_statusb'),
     path('download-file/<int:document_id>/', views.download_file, name='download_file'),
     
+    # API для статуса обработки
+    path('status/<int:document_id>/', views.document_status, name='document_status'),
+    
     # Массовые операции
     path('batch/upload/', batch_views.batch_upload_view, name='batch_upload'),
     path('batch/process/', batch_views.batch_process_view, name='batch_process'),
