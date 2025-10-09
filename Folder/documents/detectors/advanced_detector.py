@@ -197,14 +197,19 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                             })
                 
                 if similar_texts:
-                    # Рассчитываем оригинальность
-                    originality = calculate_originality_large_texts(
-                        document_text, 
-                        similar_texts, 
-                        shingle_size=3
-                    )
+                    # Рассчитываем оригинальность для КАЖДОГО похожего документа отдельно
+                    # и берём МИНИМАЛЬНУЮ (худший случай)
+                    originality_scores = []
+                    for similar_text in similar_texts:
+                        originality = calculate_originality_large_texts(
+                            document_text, 
+                            [similar_text],  # Сравниваем с ОДНИМ документом
+                            shingle_size=3
+                        )
+                        originality_scores.append(originality)
                     
-                    result['originality'] = max(0.0, min(100.0, originality))
+                    # Берём минимальную оригинальность (максимальную схожесть)
+                    result['originality'] = max(0.0, min(100.0, min(originality_scores)))
                     result['similarity'] = 100 - result['originality']
                     
                     # Определяем риск плагиата

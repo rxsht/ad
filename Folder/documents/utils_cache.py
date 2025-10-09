@@ -2,6 +2,7 @@
 Утилиты для кэширования векторов и результатов в Redis
 """
 
+import os
 import json
 import redis
 from django.conf import settings
