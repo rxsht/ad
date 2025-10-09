@@ -54,10 +54,11 @@ def process_document_sync(document_id):
         analysis_result = detector.detect_plagiarism(document_id)
         
         if analysis_result['status'] == 'success':
+            # Сохраняем результаты, но статус НЕ меняем
+            # Статус изменится когда пользователь нажмёт "Отправить на проверку"
             doc.result = analysis_result['originality']
             doc.detailed_analysis = analysis_result
             doc.processing_status = 'completed'
-            doc.status = Status.objects.get(pk=2)
             doc.processing_completed_at = timezone.now()
             doc.processing_error = None
             
@@ -65,7 +66,6 @@ def process_document_sync(document_id):
                 'result', 
                 'detailed_analysis', 
                 'processing_status', 
-                'status', 
                 'processing_completed_at',
                 'processing_error'
             ])

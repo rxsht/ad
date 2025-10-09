@@ -70,11 +70,10 @@ def process_document_plagiarism(self, document_id):
             analysis_result = detector.detect_plagiarism(document_id)
             
             if analysis_result['status'] == 'success':
-                # Сохраняем результаты
+                # Сохраняем результаты (статус НЕ меняем - он изменится при "Отправить на проверку")
                 doc.result = analysis_result['originality']
                 doc.detailed_analysis = analysis_result
                 doc.processing_status = 'completed'
-                doc.status = Status.objects.get(pk=2)  # Проверен
                 doc.processing_completed_at = timezone.now()
                 doc.processing_error = None
                 
@@ -82,7 +81,6 @@ def process_document_plagiarism(self, document_id):
                     'result', 
                     'detailed_analysis', 
                     'processing_status', 
-                    'status', 
                     'processing_completed_at',
                     'processing_error'
                 ])

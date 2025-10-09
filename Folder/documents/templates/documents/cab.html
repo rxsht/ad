@@ -234,7 +234,7 @@
                        </svg>
                      </button>
                      <div class="more-btns__content">
-                       <button {% if document.status.id != 2 %}disabled{% endif %} type="button" class="more-btns__link">
+                       <button {% if document.processing_status != 'completed' or document.result is None %}disabled{% endif %} type="button" class="more-btns__link">
                          <div class="more-btns__link-icon">
                            <svg>
                              <use xlink:href="{%static "assets/img/sprite.svg"%}#results-result"></use>
@@ -247,7 +247,7 @@
                        </button>
                      
                      
-                       <button {% if document.status.id != 2 %}disabled{% endif %} type="button" class="more-btns__link" data-graph-path="modal-protection" >
+                       <button {% if document.processing_status != 'completed' or document.result is None %}disabled{% endif %} type="button" class="more-btns__link" data-graph-path="modal-protection" >
                          <div class="more-btns__link-icon">
                            <svg>
                              <use xlink:href="{%static "assets/img/sprite.svg"%}#paper-upload"></use>
@@ -258,8 +258,8 @@
                          </div>
                        
                          <span>
-                           {% comment %} <a href="{% url 'documents:change_status' document.id %}" id={{document.id}} class="btn btn-primary js-doc-id">Отправить на проверку</a> {% endcomment %}
-                           Отправить на проверку
+                           {% comment %} <a href="{% url 'documents:change_status' document.id %}" id={{document.id}} class="btn btn-primary js-doc-id">Отправить на защиту</a> {% endcomment %}
+                           Отправить на защиту
                          </span>
                        
                        </button>

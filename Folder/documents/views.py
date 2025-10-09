@@ -38,7 +38,7 @@ def download_file(request, document_id):
 @login_required
 def change_status(request, document_id):
     document = Document.objects.get(id=document_id)
-    # На проверке
+    # На защите
     document.status = Status.objects.get(pk=1)
     document.last_status_changed_by = request.user
     document.save()
@@ -126,11 +126,11 @@ def cabinet(request):
 def results(request):
     query = request.GET.get('q', '')  
     is_searching = bool(query) 
-    # Показываем документы со статусами: 1 (На проверке) и 2 (Проверен)
-    documents = Document.objects.filter(status_id__in=[1, 2])
+    # Показываем только документы отправленные на защиту (status_id=1)
+    documents = Document.objects.filter(status_id=1)
 
     if query:
-        documents = q_search_by_fio(query).filter(status_id__in=[1, 2])
+        documents = q_search_by_fio(query).filter(status_id=1)
 
     page_number = request.GET.get('page', 1)
     paginator = Paginator(documents, 10) 
