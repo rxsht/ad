@@ -66,7 +66,7 @@ class Document(models.Model):
     status = models.ForeignKey(to=Status, default=1, on_delete=models.CASCADE)
     type = models.ForeignKey(to=Type, on_delete=models.CASCADE, default=1)
     time_created = models.DateTimeField(auto_now_add=True, verbose_name='Дата и время загрузки документа')
-    data = models.FileField(upload_to="pdf_files/", verbose_name='документ')
+    data = models.FileField(upload_to="documents/", verbose_name='документ')
     txt_file = models.FileField(upload_to='txt_files/', blank=True, null=True)
     vector = models.TextField(blank=True, null=True, verbose_name='Векторное представление текста (JSON)')
     last_status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='status_changed_docs')

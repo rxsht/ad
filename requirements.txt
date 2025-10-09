@@ -13,8 +13,9 @@ gunicorn
 # Отладка (только для разработки)
 django-debug-toolbar==4.4.5
 
-# Обработка PDF
+# Обработка PDF и DOCX
 pdfminer.six==20240706
+python-docx==1.1.0
 
 # Машинное обучение и векторизация
 numpy==2.0.2

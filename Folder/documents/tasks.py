@@ -10,6 +10,7 @@ from django.conf import settings
 from documents.models import Document, Status
 from documents import text_clining, vector
 from documents.detectors import AdvancedPlagiarismDetector
+from documents.docx_extractor import extract_text_from_docx
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -32,10 +33,19 @@ def process_document_plagiarism(self, document_id):
         doc.processing_started_at = timezone.now()
         doc.save(update_fields=['processing_status', 'processing_started_at'])
         
-        # Шаг 1: Извлечение текста из PDF
+        # Шаг 1: Извлечение текста из PDF или DOCX
         try:
-            pdf_path = doc.data.path if os.path.isabs(doc.data.path) else os.path.join("media", doc.data.path)
-            text_content = text_clining.clean_text_from_pdf(pdf_path)
+            file_path = doc.data.path if os.path.isabs(doc.data.path) else os.path.join("media", doc.data.path)
+            file_extension = os.path.splitext(file_path)[1].lower()
+            
+            # Определяем тип файла и извлекаем текст
+            if file_extension == '.pdf':
+                text_content = text_clining.clean_text_from_pdf(file_path)
+            elif file_extension == '.docx':
+                text_content = extract_text_from_docx(file_path)
+            else:
+                raise Exception(f"Неподдерживаемый формат файла: {file_extension}")
+            
             txt_filename = f"{doc.name}.txt"
             txt_file_path = os.path.join("media", "txt_files", txt_filename)
             
