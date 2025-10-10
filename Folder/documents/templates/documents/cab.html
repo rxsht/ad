@@ -95,12 +95,63 @@
        </div>
      </div>
    </div>
- </header>
-  <main>
-   <section class="cab cab--cab">
-     <div class="container">
-       <div class="cab__container">
-         <div class="cab__titles">
+  </header>
+   <main>
+    <!-- Django Messages -->
+    {% if messages %}
+    <style>
+      .messages-container {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 400px;
+      }
+      .messages-container .alert {
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease-out;
+      }
+      .messages-container .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .messages-container .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .messages-container .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+      }
+      .messages-container .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    </style>
+    <div class="messages-container">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    
+    <section class="cab cab--cab">
+      <div class="container">
+        <div class="cab__container">
+          <div class="cab__titles">
            <h1 class="cab__titles-title title">Кабинет</h1>
            <div class="cab__titles-left">
              <div class="cab__search">
@@ -568,6 +619,33 @@
     const hasProcessing = document.querySelector('[data-processing-status="queue"], [data-processing-status="processing"]');
     if (hasProcessing) {
         setInterval(checkDocumentStatus, 5000);
+    }
+})();
+</script>
+
+<script>
+// Автозакрытие модального окна после успешной загрузки
+(function() {
+    // Проверяем наличие сообщений об успехе
+    const messagesContainer = document.querySelector('.messages-container');
+    if (messagesContainer) {
+        // Закрываем все открытые модальные окна
+        const openModals = document.querySelectorAll('.graph-modal.active, .graph-modal--open');
+        openModals.forEach(modal => {
+            modal.classList.remove('active', 'graph-modal--open');
+        });
+        
+        // Удаляем класс у body если он был добавлен
+        document.body.classList.remove('no-scroll');
+        
+        // Автоматически скрываем сообщения через 5 секунд
+        setTimeout(() => {
+            messagesContainer.style.transition = 'opacity 0.5s ease-out';
+            messagesContainer.style.opacity = '0';
+            setTimeout(() => {
+                messagesContainer.remove();
+            }, 500);
+        }, 5000);
     }
 })();
 </script>
