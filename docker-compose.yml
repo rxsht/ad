@@ -50,6 +50,7 @@ services:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY:-django-insecure-default-change-me}
       DEBUG: ${DEBUG:-False}
+      ALLOW_ALL_HOSTS: ${ALLOW_ALL_HOSTS:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
@@ -72,6 +73,7 @@ services:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY:-django-insecure-default-change-me}
       DEBUG: ${DEBUG:-False}
+      ALLOW_ALL_HOSTS: ${ALLOW_ALL_HOSTS:-True}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}

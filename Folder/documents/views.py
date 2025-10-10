@@ -97,9 +97,11 @@ def cabinet(request):
     else:
         form = DocumentForm()
     if request.user.is_staff or request.user.is_superuser:
+        # Админы и преподаватели видят все документы
         base_qs = Document.objects.all()
     else:
-        base_qs = Document.objects.filter(Q(user=request.user) | Q(user__isnull=True))
+        # Обычные пользователи (студенты) видят только свои документы
+        base_qs = Document.objects.filter(user=request.user)
 
     if query:
         # Создаём Q объект для поиска по имени документа

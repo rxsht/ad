@@ -33,7 +33,26 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-#uw1jpc^-n9834e=h1jyeq2d34
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# ALLOWED_HOSTS конфигурация
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
+
+if allowed_hosts_env:
+    # Из переменной окружения
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',')]
+else:
+    # Дефолтные значения (захардкоженные для БГУИР)
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '172.16.82.130',  # IP сервера в локальной сети БГУИР
+        'antiplagiat.bsuir.local',
+        'antiplagiat.bsuir.by',
+        '*.bsuir.by',  # Любые поддомены БГУИР
+    ]
+
+# Для разработки: разрешить все хосты
+if DEBUG or os.getenv('ALLOW_ALL_HOSTS', 'False') == 'True':
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
