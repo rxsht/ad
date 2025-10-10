@@ -17,6 +17,7 @@ python Folder/manage.py collectstatic --noinput --clear
 
 echo "==> Creating cache directory..."
 mkdir -p /app/Folder/media/txt_files
+mkdir -p /app/Folder/media/documents
 
 echo "==> Starting application..."
 exec "$@"

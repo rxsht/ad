@@ -1,0 +1,87 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/Folder/staticfiles/
+
+# Media files (will be mounted as volumes)
+/media/
+/Folder/media/
+
+# Environment variables
+.env
+.env.*
+env.template
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation (not needed in container)
+*.md
+!README.md
+
+# Windows batch files (not needed in Linux container)
+*.bat
+
+# Testing
+*.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Docker files (no need to copy into image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Node modules (if any)
+node_modules/
+npm-debug.log
+
+# Logs
+*.log
+logs/
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Project specific
+nginx.conf
+ssl/
+

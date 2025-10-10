@@ -8,8 +8,15 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
     gcc \
+    g++ \
+    make \
     netcat-traditional \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Установка Rust для сборки tokenizers
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Копируем файлы зависимостей
 COPY requirements.txt /app/

@@ -6,6 +6,7 @@ tzdata==2024.2
 
 # База данных
 psycopg2==2.9.10
+pgvector==0.2.4
 
 # Веб-сервер
 gunicorn
@@ -16,14 +17,15 @@ django-debug-toolbar==4.4.5
 # Обработка PDF и DOCX
 pdfminer.six==20240706
 python-docx==1.1.0
+PyMuPDF>=1.23.0
+Pillow>=10.0.0
 
 # Машинное обучение и векторизация
 numpy==2.0.2
-sentence-transformers==2.2.2
-transformers==4.21.0
-huggingface-hub==0.10.1
-tokenizers==0.12.1
 torch==2.5.1
+sentence-transformers==2.2.2
+transformers==4.35.0
+tokenizers>=0.14,<0.15
 
 # Обработка текста
 pymystem3==0.2.0
