@@ -161,7 +161,19 @@ Plagiarism_detection_bsuir/
 
 ## 🔧 Полезные команды
 
-### Docker:
+### 🚀 Быстрый запуск (Windows):
+```bash
+# Запустить ВСЁ одним кликом (Django + Redis + Celery)
+start_all.bat
+
+# Остановить всё
+stop_all.bat
+
+# Только Celery
+start_celery.bat
+```
+
+### Docker (Production):
 ```bash
 # Запуск
 docker compose up -d
@@ -179,16 +191,20 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py reprocess_documents --all
 ```
 
-### Локально:
+### Локально (вручную):
 ```bash
 # Сборка статики
 python Folder/manage.py collectstatic
 
+# Django сервер
+python Folder/manage.py runserver
+
 # Celery worker (нужен Redis)
-celery -A Folder.app worker --loglevel=info --pool=solo
+cd Folder
+celery -A app worker --loglevel=info --pool=solo
 
 # Flower мониторинг
-celery -A Folder.app flower
+celery -A app flower --port=5555
 ```
 
 ---
@@ -264,6 +280,17 @@ celery -A Folder.app flower
 ### Функциональность:
 - **DOCX_SUPPORT.md** - поддержка DOCX файлов (реализовано ✅)
 - **IMAGE_PLAGIARISM_GUIDE.md** - детальный план проверки изображений (план 📋)
+
+### Redis и Celery:
+- **REDIS_GUIDE.md** - полное руководство по Redis
+- **REDIS_SUCCESS.md** - проверка что Redis работает
+- **CELERY_AUTOSTART.md** - автоматический запуск Celery
+- **QUICK_RUN.md** - быстрый запуск всего проекта
+
+### BAT-файлы (Windows):
+- **start_all.bat** - запустить всё одним кликом ⚡
+- **start_celery.bat** - запустить только Celery
+- **stop_all.bat** - остановить всё
 
 ---
 

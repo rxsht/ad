@@ -102,7 +102,12 @@ def cabinet(request):
         base_qs = Document.objects.filter(Q(user=request.user) | Q(user__isnull=True))
 
     if query:
-        documents = base_qs.filter(q_search(query, request.user).query)
+        # Создаём Q объект для поиска по имени документа
+        keywords = query.split()
+        q_objects = Q()
+        for token in keywords:
+            q_objects |= Q(name__icontains=token)
+        documents = base_qs.filter(q_objects)
     else:
         documents = base_qs
 
