@@ -531,9 +531,11 @@
          </div>
          <div class="modal-load__drag-area drag-area">
            <div class="drag-area__form">
-             <button class="drag-area__btn btn btn-def" type="button">
-               <svg>
-                 <use xlink:href"{%static "assets/img/sprite.svg"%}#paper"></use>
+             <button class="drag-area__btn btn btn-def" type="button" id="upload-btn">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                 <polyline points="17 8 12 3 7 8"></polyline>
+                 <line x1="12" y1="3" x2="12" y2="15"></line>
                </svg>
                Загрузить документ
              </button>
@@ -542,7 +544,7 @@
               Допустимые форматы: PDF, DOCX <br />
               Максимальный размер: 10 МБ
             </p>
-            <input type="file" name="data" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+            <input type="file" name="data" id="file-input-custom" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" />
            </div>
            <div class="drag-area__files"></div>
          </div>
@@ -649,6 +651,266 @@
     }
 })();
 </script>
+
+<script>
+// Fix for DOCX file upload and delete functionality
+(function() {
+    // Wait for DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initFileUpload);
+    } else {
+        initFileUpload();
+    }
+    
+    function initFileUpload() {
+        const dragArea = document.querySelector('.drag-area');
+        if (!dragArea) return;
+
+        const button = document.getElementById('upload-btn');
+        const input = document.getElementById('file-input-custom');
+        const fileDisplay = document.querySelector('.drag-area__files');
+        const dragAreaForm = document.querySelector('.drag-area__form');
+
+        if (!button || !input || !fileDisplay || !dragAreaForm) return;
+        
+        // Remove all old event listeners by cloning elements
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        // Use the new elements
+        setupFileUpload(newButton, newInput, fileDisplay, dragAreaForm, dragArea);
+    }
+    
+    function setupFileUpload(button, input, fileDisplay, dragAreaForm, dragArea) {
+
+    // Enhanced validation for PDF and DOCX
+    const isValid = (file) => {
+        const validTypes = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        const maxSize = 10 * 1024 * 1024; // 10 MB
+        return validTypes.includes(file.type) && file.size <= maxSize;
+    };
+
+    // Display file with delete button
+    const displayFile = (file) => {
+        // Clear previous files
+        fileDisplay.innerHTML = '';
+        
+        const fileElement = document.createElement('div');
+        fileElement.setAttribute('class', 'drag-area__file');
+        
+        const fileName = document.createElement('div');
+        fileName.setAttribute('class', 'drag-area__filename');
+        fileName.textContent = file.name;
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.setAttribute('class', 'drag-area__fileclose');
+        deleteButton.setAttribute('type', 'button');
+        deleteButton.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        `;
+        
+        // Delete button functionality
+        deleteButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            fileDisplay.innerHTML = '';
+            dragArea.classList.remove('--error');
+            dragArea.classList.remove('--files');
+            dragAreaForm.classList.remove('--error');
+            input.value = '';
+            
+            // Create a new file input to clear the selection
+            const newInput = document.createElement('input');
+            newInput.type = 'file';
+            newInput.name = 'data';
+            newInput.id = 'file-input-custom';
+            newInput.accept = 'application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            newInput.style.display = 'none';
+            
+            input.parentNode.replaceChild(newInput, input);
+            
+            // Re-setup handlers on new input
+            newInput.addEventListener('change', (event) => {
+                event.stopImmediatePropagation();
+                const file = event.target.files[0];
+                validateAndDisplay(file);
+            }, false);
+        });
+        
+        fileElement.appendChild(fileName);
+        fileElement.appendChild(deleteButton);
+        fileDisplay.appendChild(fileElement);
+    };
+
+    // Validation with improved error handling
+    const validateAndDisplay = (file) => {
+        if (!file) return;
+        
+        if (isValid(file)) {
+            displayFile(file);
+            dragArea.classList.add('--files');
+            dragArea.classList.remove('--error');
+            dragAreaForm.classList.remove('--error');
+        } else {
+            dragArea.classList.add('--error');
+            dragAreaForm.classList.add('--error');
+            fileDisplay.innerHTML = '';
+            input.value = '';
+            
+            // Show error message
+            const errorMsg = document.createElement('div');
+            errorMsg.style.color = '#721c24';
+            errorMsg.style.fontSize = '14px';
+            errorMsg.style.marginTop = '10px';
+            errorMsg.textContent = 'Неверный формат или размер файла. Допустимы: PDF, DOCX (макс. 10 МБ)';
+            fileDisplay.appendChild(errorMsg);
+            
+            setTimeout(() => {
+                dragArea.classList.remove('--error');
+                dragAreaForm.classList.remove('--error');
+                fileDisplay.innerHTML = '';
+            }, 3000);
+        }
+    };
+
+    // Setup input change handler
+    const setupInputHandler = (inputElement) => {
+        inputElement.addEventListener('change', (event) => {
+            event.stopImmediatePropagation();
+            const file = event.target.files[0];
+            validateAndDisplay(file);
+        }, false);
+    };
+
+    // Override drag and drop handlers
+    dragArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        dragArea.classList.remove('--active');
+        const file = event.dataTransfer.files[0];
+        
+        // Set file to input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+        
+        validateAndDisplay(file);
+    }, false);
+
+    dragArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        dragArea.classList.add('--active');
+    }, false);
+
+    dragArea.addEventListener('dragleave', (event) => {
+        event.stopImmediatePropagation();
+        dragArea.classList.remove('--active');
+    }, false);
+
+    // Setup initial input handler
+    setupInputHandler(input);
+
+    // Fix button click
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        input.click();
+    }, false);
+    
+    } // End of setupFileUpload
+})();
+</script>
+
+<style>
+/* Enhanced styles for drag area and file upload */
+.drag-area__btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+.drag-area__btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Hide default file input completely */
+input[type="file"] {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+.drag-area__file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+.drag-area__filename {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #212529;
+    word-break: break-word;
+}
+
+.drag-area__fileclose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.drag-area__fileclose:hover {
+    background: #e9ecef;
+    color: #dc3545;
+}
+
+.drag-area__fileclose svg {
+    width: 20px;
+    height: 20px;
+}
+
+.drag-area.--error .drag-area__form {
+    border-color: #dc3545;
+}
+
+.drag-area.--files .drag-area__form {
+    border-color: #28a745;
+}
+</style>
 
   </body>
 </html>

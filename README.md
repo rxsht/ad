@@ -163,14 +163,11 @@ Plagiarism_detection_bsuir/
 
 ### 🚀 Быстрый запуск (Windows):
 ```bash
-# Запустить ВСЁ одним кликом (Django + Redis + Celery)
+# Start ALL services with one click (Django + Redis + Celery)
 start_all.bat
 
-# Остановить всё
+# Stop all services
 stop_all.bat
-
-# Только Celery
-start_celery.bat
 ```
 
 ### Docker (Production):
@@ -288,9 +285,8 @@ celery -A app flower --port=5555
 - **QUICK_RUN.md** - быстрый запуск всего проекта
 
 ### BAT-файлы (Windows):
-- **start_all.bat** - запустить всё одним кликом ⚡
-- **start_celery.bat** - запустить только Celery
-- **stop_all.bat** - остановить всё
+- **start_all.bat** - start all services with one click ⚡
+- **stop_all.bat** - stop all services
 
 ---
 
