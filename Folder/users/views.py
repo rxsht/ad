@@ -40,31 +40,7 @@ def pers_cab(request):
     return render(request, 'users/pers-cab.html', context)
 
 
-@login_required
-def role_cab(request):
-    query = request.GET.get('query', '')
-    is_searching = bool(query)
-    if query:
-        user_list = q_search(query)
-    else:
-        user_list = User.objects.all()
-
-    paginator = Paginator(user_list, 10)
-    page_number = request.GET.get('page')
-
-    try:
-        paginated_users = paginator.page(page_number)
-    except PageNotAnInteger:
-        paginated_users = paginator.page(1)
-    except EmptyPage:
-        paginated_users = paginator.page(paginator.num_pages)
-
-    context = {
-        'users': paginated_users,
-        'query': query,
-        'is_searching': is_searching,
-    }
-    return render(request, 'users/role-cab.html', context)
+ 
 
 @login_required
 def logout_view(request):

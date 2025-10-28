@@ -7,7 +7,7 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
    <meta name="theme-color" content="#111111" />
-   <title>Кабинет</title>
+  <title>Репозиторий</title>
    <link rel="preconnect" href="https://fonts.googleapis.com" />
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
@@ -45,7 +45,7 @@
                  <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab-active"></use>
                </svg>
              </div>
-             <span>Кабинет</span>
+            <span>Репозиторий</span>
            </a>
            <a href={% url "users:pers-cab" %} class="header__menu-item">
              <div class="header__menu-icon">
@@ -56,30 +56,10 @@
                  <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user-active"></use>
                </svg>
              </div>
-             <span>Личный кабинет</span>
+             <span>Кабинет</span>
            </a>
-           <a href={% url "documents:results" %} class="header__menu-item">
-             <div class="header__menu-icon">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result"></use>
-               </svg>
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result-active"></use>
-               </svg>
-             </div>
-             <span>Результаты</span>
-           </a>
-           <a href={% url "users:role-cab" %} class="header__menu-item">
-             <div class="header__menu-icon">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role"></use>
-               </svg>
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role-active"></use>
-               </svg>
-             </div>
-             <span>Роль пользователя</span>
-           </a>
+          
+          
            <a href={% url "logout" %} class="header__menu-item">
              <div class="header__menu-icon">
                <svg>
@@ -152,7 +132,7 @@
       <div class="container">
         <div class="cab__container">
           <div class="cab__titles">
-           <h1 class="cab__titles-title title">Кабинет</h1>
+          <h1 class="cab__titles-title title">Репозиторий</h1>
            <div class="cab__titles-left">
              <div class="cab__search">
                <form action="{% url 'documents:cabinet/search' %}" method="GET" id="search-form" class="cab__search-form search">
@@ -376,17 +356,15 @@
              </div>
            </div>
  
-           <div class="cab__desc">
+          <style>
+            /* Убираем вертикальный разрыв между таблицей и нижней панелью */
+            .cab__block{margin-bottom:0 !important}
+            .cab__desc{margin-top:0 !important;padding-top:0 !important}
+            .cab__desc-content{padding:12px 0 !important}
+            .cab__desc-pagination.pagination{min-height:48px;align-items:center}
+          </style>
+          <div class="cab__desc">
              <div class="cab__desc-content">
-               <div class="cab__desc-notify">
-                 <svg>
-                   <use xlink:href="{%static "assets/img/sprite.svg"%}#input-error"></use>
-                 </svg>
-                 <p>
-                   Загруженные материалы хранятся в кабинете 7 дней, после чего, за исключением отправленных на защиту,
-                   удаляются!
-                 </p>
-               </div>
                <div class="cab__desc-infos">
                  <div class="cab__desc-pagination pagination">
                    {% if documents.has_previous %}

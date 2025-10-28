@@ -44,7 +44,7 @@
                     <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab-active"></use>
                   </svg>
                 </div>
-                <span>Кабинет</span>
+                <span>Репозиторий</span>
               </a>
               <a href={% url "users:pers-cab" %} class="header__menu-item">
                 <div class="header__menu-icon">
@@ -55,30 +55,10 @@
                     <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user-active"></use>
                   </svg>
                 </div>
-                <span>Личный кабинет</span>
+                <span>Кабинет</span>
               </a>
-              <a href={% url "documents:results" %} class="header__menu-item">
-                <div class="header__menu-icon">
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result"></use>
-                  </svg>
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result-active"></use>
-                  </svg>
-                </div>
-                <span>Результаты</span>
-              </a>
-              <a href={% url "users:role-cab" %} class="header__menu-item">
-                <div class="header__menu-icon">
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role"></use>
-                  </svg>
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role-active"></use>
-                  </svg>
-                </div>
-                <span>Роль пользователя</span>
-              </a>
+              
+              
               <a href={% url "logout" %} class="header__menu-item">
                 <div class="header__menu-icon">
                   <svg>

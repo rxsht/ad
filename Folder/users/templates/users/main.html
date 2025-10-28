@@ -12,6 +12,125 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{%static "css/vendor.css"%}" />
   <link rel="stylesheet" href="{%static "css/main.css"%}" />
+  <style>
+    /* Стили для контейнера поля пароля */
+    .input--pass-wrapper {
+      position: relative;
+    }
+    
+    /* Контейнер для поля ввода и кнопки */
+    .input--pass-container {
+      position: relative;
+    }
+    
+    /* Поле ввода пароля */
+    .input--pass-container .input__input {
+      width: 100%;
+      margin: 0;
+      padding-right: 50px !important;
+    }
+    
+    /* Стили для кнопки переключения видимости пароля */
+    .input--pass-container .input__btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: #8B95A1;
+      transition: all 0.2s ease;
+      border-radius: 6px;
+      z-index: 10;
+    }
+    
+    .input--pass-container .input__btn:hover {
+      color: #3b547f;
+      background-color: rgba(59, 84, 127, 0.08);
+    }
+    
+    .input--pass-container .input__btn:active {
+      transform: translateY(-50%);
+    }
+    
+    .input--pass-container .input__btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      display: block;
+      transition: opacity 0.2s ease;
+    }
+    
+    /* Переключение иконок */
+    
+    .eye-closed {
+      display: block;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    
+    .eye-open {
+      display: block;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    /* Состояние когда пароль виден */
+    .input--pass-container.password-visible .eye-closed {
+      opacity: 0 !important;
+    }
+    
+    .input--pass-container.password-visible .eye-open {
+      opacity: 1 !important;
+    }
+    
+    /* Убираем рамку */
+    .input--pass-container .input__btn:focus {
+      outline: none;
+    }
+    
+    /* Убираем стандартные стили кнопки */
+    .input--pass-container .input__btn::-moz-focus-inner {
+      border: 0;
+    }
+    
+    /* Адаптивность для мобильных устройств */
+    @media (max-width: 768px) {
+      .input--pass-container .input__btn {
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+      }
+      
+      .input--pass-container .input__btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .input--pass-container .input__input {
+        padding-right: 44px !important;
+      }
+    }
+    
+    /* Улучшение для touch устройств */
+    @media (hover: none) and (pointer: coarse) {
+      .input--pass-container .input__btn {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    }
+  </style>
 </head>
 
   <body>
@@ -37,7 +156,7 @@
   <section class="auth">
     <div class="container">
       <div class="auth__container">
-        <h1 class="auth__title title">Личный кабинет</h1>
+        <h1 class="auth__title title">Кабинет</h1>
         <form accept={% url "users:main" %} method="post" class="auth__form" id="auth-form">
           {% csrf_token %}
                   
@@ -55,23 +174,25 @@
             </div>
             <div class="input__error">Некорректный формат логина!</div>
           </div>
-          <div class="auth__form-input input input--pass">
+          <div class="auth__form-input input input--pass-wrapper">
             <label class="input__label" for="login">Пароль</label>
-            <input
-              autocomplete="off"
-              class="input__input"
-              type="password"
-              placeholder="Введите пароль"
-              name="password"
-            />
-            <button type="button" class="input__btn">
-              <svg>
-                <use xlink:href"{%static "assets/img/sprite.svg"%}#pass-open"></use>
+            <div class="input--pass-container">
+              <input
+                autocomplete="off"
+                class="input__input"
+                type="password"
+                placeholder="Введите пароль"
+                name="password"
+              />
+            <button type="button" class="input__btn js-toggle-password" id="togglePassword" tabindex="0">
+              <svg class="eye-closed" viewBox="0 0 25 25">
+                <use xlink:href="{%static "assets/img/sprite.svg"%}#pass-close"></use>
               </svg>
-              <svg>
-                <use xlink:href"{%static "assets/img/sprite.svg"%}#pass-close"></use>
+              <svg class="eye-open" viewBox="0 0 25 25">
+                <use xlink:href="{%static "assets/img/sprite.svg"%}#pass-open"></use>
               </svg>
             </button>
+            </div>
             <div class="input__btn-notify js-notify" data-notify="Менее 8 символов">
               <svg>
                 <use xlink:href"{%static "assets/img/sprite.svg"%}#input-error"></use>
@@ -97,7 +218,7 @@
             </h2>
             <p>
               В случае возникновения проблем со входом студентам необходимо восстановить пароль в ИИС, преподавателям —
-              в <a href="https://account.bsuir.by/password-recovery">Кабинете сотрудника БГУИР</a>
+              в <a href="https://account.bsuir.by/password-recovery">Репозитории сотрудника БГУИР</a>
             </p>
             <p>
               Если самостоятельно сбросить пароль не удалось, воспользуйтесь пунктом
@@ -266,6 +387,56 @@
  <script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://unpkg.com/tippy.js@6"></script>
 <script src="{%static "js/main.js"%}"></script>
+
+<script>
+// Функциональность переключения видимости пароля
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('togglePassword');
+    const passwordInput = document.querySelector('input[name="password"]');
+    const passwordContainer = document.querySelector('.input--pass-container');
+    
+    if (toggleButton && passwordInput && passwordContainer) {
+        // Инициализация состояния
+        let isPasswordVisible = false;
+        
+        toggleButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Переключаем состояние
+            isPasswordVisible = !isPasswordVisible;
+            console.log('Toggle clicked. isPasswordVisible:', isPasswordVisible);
+            console.log('passwordContainer:', passwordContainer);
+            
+            if (isPasswordVisible) {
+                // Показать пароль
+                passwordInput.type = 'text';
+                passwordContainer.classList.add('password-visible');
+                toggleButton.setAttribute('aria-label', 'Скрыть пароль');
+                toggleButton.title = 'Скрыть пароль';
+            } else {
+                // Скрыть пароль
+                passwordInput.type = 'password';
+                passwordContainer.classList.remove('password-visible');
+                toggleButton.setAttribute('aria-label', 'Показать пароль');
+                toggleButton.title = 'Показать пароль';
+            }
+        });
+        
+        // Устанавливаем начальные атрибуты
+        toggleButton.setAttribute('aria-label', 'Показать пароль');
+        toggleButton.title = 'Показать пароль';
+        
+        // Добавляем поддержку клавиатуры
+        toggleButton.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleButton.click();
+            }
+        });
+    }
+});
+</script>
 
   </body>
 </html>

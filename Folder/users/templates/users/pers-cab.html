@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <meta name="theme-color" content="#111111" />
-  <title>Личный кабинет</title>
+  <title>Кабинет</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
@@ -44,7 +44,7 @@
                     <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab-active"></use>
                   </svg>
                 </div>
-                <span>Кабинет</span>
+                <span>Репозиторий</span>
               </a>
               <a href={% url "users:pers-cab" %} class="header__menu-item">
                 <div class="header__menu-icon">
@@ -55,30 +55,10 @@
                     <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user-active"></use>
                   </svg>
                 </div>
-                <span>Личный кабинет</span>
+                <span>Кабинет</span>
               </a>
-              <a href={% url "documents:results" %} class="header__menu-item">
-                <div class="header__menu-icon">
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result"></use>
-                  </svg>
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-result-active"></use>
-                  </svg>
-                </div>
-                <span>Результаты</span>
-              </a>
-              <a href={% url "users:role-cab" %} class="header__menu-item">
-                <div class="header__menu-icon">
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role"></use>
-                  </svg>
-                  <svg>
-                    <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-role-active"></use>
-                  </svg>
-                </div>
-                <span>Роль пользователя</span>
-              </a>
+              
+              
               <a href={% url "users:main" %} class="header__menu-item">
                 <div class="header__menu-icon">
                   <svg>
@@ -100,26 +80,42 @@
     <div class="container">
       <div class="cab__container">
         <div class="cab__titles">
-          <h1 class="cab__titles-title title">Личный кабинет</h1>
+          <h1 class="cab__titles-title title">Кабинет</h1>
         </div>
         <div class="cab__block cab-pers">
           <div class="cab-pers__content">
-            <div class="cab-pers__main">
-              <div class="cab-pers__icon">
-                <svg>
-                  <use xlink:href="{%static "assets/img/sprite.svg"%}#profile"></use>
-                </svg>
+            <style>
+              .profile-card{background:#ffffff;border:1px solid #e9ecef;border-radius:16px;padding:28px 28px 22px 28px;box-shadow:0 10px 28px rgba(17,17,17,.08)}
+              .profile-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+              .profile-title{margin:0;font-size:28px;font-weight:800;letter-spacing:.2px;color:#121826}
+              .profile-sub{margin:2px 0 0 0;color:#4b5563;font-size:15px;font-weight:600}
+              .profile-grid{display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:12px 22px;margin-top:14px}
+              .profile-label{color:#4b5563;font-size:15px;font-weight:700}
+              .profile-value{color:#0f172a;font-size:16px;font-weight:700}
+              .profile-value a{color:#0f172a;text-decoration:none;border-bottom:2px solid rgba(15,23,42,.15);padding-bottom:2px}
+              .profile-value a:hover{border-bottom-color:rgba(15,23,42,.35)}
+              .profile-divider{height:2px;background:#eef2f7;margin:16px 0;border-radius:2px}
+              .muted{color:#6b7280}
+              @media (max-width: 640px){.profile-grid{grid-template-columns:1fr;gap:8px}.profile-label{margin-top:10px}}
+            </style>
+            <div class="profile-card">
+              <div class="profile-header">
+                <div>
+                  <h2 class="profile-title">{{user.last_name}} {{user.first_name}}</h2>
+                  <p class="profile-sub">Кабинет <span class="muted">·</span> {{user.username}}</p>
+                </div>
               </div>
-              <div class="cab-pers__name">
-                <p>{{user.last_name}}</p>
-                <p>{{user.first_name}}</p>
-                <p>{{user.sur_name}}</p>
-              </div>
-            </div>
-            <div class="cab-pers__info">
-              <div class="cab-pers__info-block">
-                <b>Адресс электронной почты</b>
-                <a href="mailto:ivanov@mail.ru">{{user.email}}</a>
+              <div class="profile-divider"></div>
+              <div class="profile-grid">
+                <div class="profile-label">Фамилия</div>
+                <div class="profile-value">{{user.last_name}}</div>
+                <div class="profile-label">Имя</div>
+                <div class="profile-value">{{user.first_name}}</div>
+                <div class="profile-label">Логин</div>
+                <div class="profile-value">{{user.username}}</div>
+                <div class="profile-label">Электронная почта</div>
+                <div class="profile-value"><a href="mailto:{{user.email}}">{{user.email}}</a></div>
+                
               </div>
             </div>
           </div>
