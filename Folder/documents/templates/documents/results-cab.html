@@ -169,7 +169,7 @@
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Дата</div>
-                    <div>{{document.time_created|date:"d.m.y H:i"}}</div>
+                    <div>{{document.time_created|date:"d.m.Y H:i"}}</div>
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Оригинальность</div>
@@ -295,6 +295,38 @@
   </svg>
 </button>
 
+<style>
+  /* Сузить панель пагинации (если есть локальная пагинация в результатах) */
+  .cab__desc .pagination { 
+    max-width: 520px; 
+    margin: 0 auto; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .cab__desc-pagination.pagination { 
+    height: 30px; 
+    min-height: 30px; 
+    align-items: center; 
+    justify-content: center;
+    display: flex;
+    gap: 10px;
+  }
+  .pagination__info {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+  .pagination__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Футер 40px */
+  .footer { height: 40px !important; min-height: 40px !important; padding: 0 !important; margin: 0 !important; }
+</style>
 </main>
     <footer class="footer"></footer>
  <div class="graph-modal">
@@ -401,7 +433,7 @@
             <p class="drag-area__up">ИЛИ ПЕРЕТАЩИТЕ ФАЙЛЫ СЮДА</p>
             <p class="drag-area__sm">
               Допустимые форматы: PDF, DOCX <br />
-              Максимальный размер: 10 МБ
+              Максимальный размер: 50 МБ
             </p>
             <input type="file" hidden name="data" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
           </div>

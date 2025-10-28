@@ -19,9 +19,9 @@ class DocumentForm(forms.ModelForm):
         """Валидация загружаемого файла"""
         data = self.cleaned_data.get('data')
         if data:
-            # Проверка размера (макс 10 МБ)
-            if data.size > 10 * 1024 * 1024:
-                raise forms.ValidationError('Файл слишком большой. Максимум 10 МБ.')
+            # Проверка размера (макс 50 МБ)
+            if data.size > 50 * 1024 * 1024:
+                raise forms.ValidationError('Файл слишком большой. Максимум 50 МБ.')
             
             # Проверка расширения
             ext = os.path.splitext(data.name)[1].lower()

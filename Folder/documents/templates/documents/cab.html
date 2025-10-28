@@ -241,7 +241,7 @@
                   </div>
                   <div class="cab__item-block">
                     <div>Дата</div>
-                    <div>{{document.time_created|date:"d.m.y H:i"}}</div>
+                    <div>{{document.time_created|date:"d.m.Y H:i"}}</div>
                   </div>
                   <div class="cab__item-block">
                     <div>Оригинальность</div>
@@ -420,7 +420,43 @@
        </div>
      </div>
    </section>
-   <button type="button" class="btn-up js-btn-up">
+  <style>
+    /* Убрать разрыв между таблицей и пагинацией */
+    .cab__block { margin-bottom: 0 !important; }
+    .cab__desc { margin-top: 0 !important; padding-top: 0 !important; }
+    /* Сузить панель пагинации */
+    .cab__desc-content { padding: 4px 0 !important; }
+    .cab__desc-pagination.pagination { 
+      height: 30px; 
+      min-height: 30px; 
+      align-items: center; 
+      justify-content: center;
+      display: flex;
+      gap: 10px;
+    }
+    .cab__desc .pagination { 
+      max-width: 520px; 
+      margin: 0 auto; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .pagination__info {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 500;
+    }
+    .pagination__btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Футер 40px */
+    .footer { height: 40px !important; min-height: 40px !important; padding: 0 !important; margin: 0 !important; }
+  </style>
+  <button type="button" class="btn-up js-btn-up">
    <svg>
      <use xlink:href="{%static "assets/img/sprite.svg"%}#header-btn"></use>
    </svg>
@@ -520,7 +556,7 @@
              <p class="drag-area__up">ИЛИ ПЕРЕТАЩИТЕ ФАЙЛЫ СЮДА</p>
             <p class="drag-area__sm">
               Допустимые форматы: PDF, DOCX <br />
-              Максимальный размер: 10 МБ
+              Максимальный размер: 50 МБ
             </p>
             <input type="file" name="data" id="file-input-custom" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" />
            </div>
@@ -670,7 +706,7 @@
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
-        const maxSize = 10 * 1024 * 1024; // 10 MB
+        const maxSize = 50 * 1024 * 1024; // 50 MB
         return validTypes.includes(file.type) && file.size <= maxSize;
     };
 
@@ -749,7 +785,7 @@
             errorMsg.style.color = '#721c24';
             errorMsg.style.fontSize = '14px';
             errorMsg.style.marginTop = '10px';
-            errorMsg.textContent = 'Неверный формат или размер файла. Допустимы: PDF, DOCX (макс. 10 МБ)';
+            errorMsg.textContent = 'Неверный формат или размер файла. Допустимы: PDF, DOCX (макс. 50 МБ)';
             fileDisplay.appendChild(errorMsg);
             
             setTimeout(() => {
