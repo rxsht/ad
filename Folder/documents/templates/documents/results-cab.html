@@ -326,6 +326,12 @@
   }
   /* Футер 40px */
   .footer { height: 40px !important; min-height: 40px !important; padding: 0 !important; margin: 0 !important; }
+
+  /* Показать стрелку у поля выбора типа работы (в модалке загрузки) */
+  .dropdown__header{position:relative}
+  .dropdown__btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:block}
+  .dropdown__btn svg{fill:#696f79}
+  .dropdown__header:hover .dropdown__btn svg{fill:#3b547f}
 </style>
 </main>
     <footer class="footer"></footer>
@@ -389,7 +395,7 @@
             <div class="dropdown__value js-dropdown-value">Тип работы</div>
             <button type="button" class="dropdown__btn">
               <svg>
-                <use xlink:href"{%static "assets/img/sprite.svg"%}#dropdown-arrow"></use>
+                <use xlink:href="{%static "assets/img/sprite.svg"%}#dropdown-arrow"></use>
               </svg>
             </button>
           </div>
