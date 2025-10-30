@@ -258,45 +258,14 @@
                       {% else %}—{% endif %}
                     </div>
                   </div>
-                   <div class="cab-results__more more-btns">
-                     <button type="button" class="more-btns__btn">
-                       <svg>
-                         <use xlink:href="{%static "assets/img/sprite.svg"%}#more"></use>
+                   <div class="cab-results__more">
+                     <a href="{{ document.data.url }}" class="download-btn" download title="Скачать исходный файл">
+                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                         <path d="M12 3v12" stroke="#3b547f" stroke-width="2" stroke-linecap="round"/>
+                         <path d="M7 11l5 5 5-5" stroke="#3b547f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                         <path d="M4 20h16" stroke="#3b547f" stroke-width="2" stroke-linecap="round"/>
                        </svg>
-                     </button>
-                     <div class="more-btns__content">
-                       <button {% if document.processing_status != 'completed' or document.result is None %}disabled{% endif %} type="button" class="more-btns__link">
-                         <div class="more-btns__link-icon">
-                           <svg>
-                             <use xlink:href="{%static "assets/img/sprite.svg"%}#results-result"></use>
-                           </svg>
-                           <svg>
-                             <use xlink:href="{%static "assets/img/sprite.svg"%}#results-result-active"></use>
-                           </svg>
-                         </div>
-                         <span> <a href="{% url 'documents:download_file' document.id %}" class="btn btn-primary js-doc-id">Результаты</a></span>
-                       </button>
-                     
-                     
-                       <button {% if document.processing_status != 'completed' or document.result is None %}disabled{% endif %} type="button" class="more-btns__link" data-graph-path="modal-protection" >
-                         <div class="more-btns__link-icon">
-                           <svg>
-                             <use xlink:href="{%static "assets/img/sprite.svg"%}#paper-upload"></use>
-                           </svg>
-                           <svg>
-                             <use xlink:href="{%static "assets/img/sprite.svg"%}#paper-upload-active"></use>
-                           </svg>
-                         </div>
-                       
-                         <span>
-                           {% comment %} <a href="{% url 'documents:change_status' document.id %}" id={{document.id}} class="btn btn-primary js-doc-id">Отправить на защиту</a> {% endcomment %}
-                           Отправить на защиту
-                         </span>
-                       
-                       </button>
-                  
-                   
-                     </div>
+                     </a>
                    </div>
                  </div>
                  {% endfor %}

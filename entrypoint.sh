@@ -13,7 +13,7 @@ echo "==> Running migrations..."
 python Folder/manage.py migrate --noinput
 
 echo "==> Collecting static files..."
-python Folder/manage.py collectstatic --noinput --clear
+python Folder/manage.py collectstatic --noinput
 
 echo "==> Creating cache directory..."
 mkdir -p /app/Folder/media/txt_files
