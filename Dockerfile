@@ -22,15 +22,18 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 COPY requirements.txt /app/
 
 # Установка Python зависимостей
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
 # Копируем проект
 COPY . /app/
 
-# Копируем и делаем исполняемым entrypoint
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Исправляем окончания строк entrypoint и кладём его вне /app, чтобы bind-монтирование не перетёрло
+RUN apt-get update && apt-get install -y dos2unix && \
+    cp /app/entrypoint.sh /usr/local/bin/entrypoint.sh && \
+    dos2unix /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh && \
+    rm -rf /var/lib/apt/lists/*
 
 # Создаём необходимые директории
 RUN mkdir -p /app/Folder/media/pdf_files /app/Folder/media/txt_files /app/Folder/staticfiles
@@ -38,8 +41,10 @@ RUN mkdir -p /app/Folder/media/pdf_files /app/Folder/media/txt_files /app/Folder
 # Порт для приложения
 EXPOSE 8000
 
-# Entrypoint для инициализации
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Entrypoint для инициализации (вне /app, чтобы не зависеть от монтирования кода)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Команда по умолчанию
 CMD ["gunicorn", "Folder.app.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/app/Folder"]
+
+

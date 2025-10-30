@@ -62,6 +62,7 @@ services:
     volumes:
       - .:/app
       - media_files:/app/Folder/media
+      - hf_cache:/root/.cache/huggingface
     depends_on:
       db:
         condition: service_healthy
@@ -76,6 +77,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
       CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      HF_HOME: /root/.cache/huggingface
 
   flower:
     build: .
@@ -94,3 +96,4 @@ volumes:
   pgvector_data:
   media_files:
   static_files:
+  hf_cache:
