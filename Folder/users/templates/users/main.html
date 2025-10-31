@@ -60,39 +60,36 @@
       transform: translateY(-50%);
     }
     
+    .input--pass-container .input__btn { position: absolute; }
     .input--pass-container .input__btn svg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 20px;
       height: 20px;
       fill: currentColor;
-      display: block;
       transition: opacity 0.2s ease;
     }
-    
-    /* Переключение иконок */
-    
-    .eye-closed {
-      display: block;
-      opacity: 1;
-      transition: opacity 0.2s ease;
-    }
-    
-    .eye-open {
-      display: block;
-      opacity: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      transition: opacity 0.2s ease;
-    }
-    
-    /* Состояние когда пароль виден */
-    .input--pass-container.password-visible .eye-closed {
-      opacity: 0 !important;
-    }
-    
-    .input--pass-container.password-visible .eye-open {
+
+    /* Сбрасываем глобальные правила, которые прятали первый/последний svg у кнопки */
+    .input--pass-container .input__btn svg:first-child,
+    .input--pass-container .input__btn svg:last-child {
       opacity: 1 !important;
+      visibility: visible !important;
     }
+    
+    /* Переключение иконок (усиленная специфичность и !important) */
+    .input--pass-container .input__btn .eye-closed{opacity:1 !important; transition:opacity .2s ease}
+    .input--pass-container .input__btn .eye-open{opacity:0 !important; transition:opacity .2s ease}
+
+    /* Состояние когда пароль виден */
+    .input--pass-container.password-visible .input__btn .eye-closed{opacity:0 !important}
+    .input--pass-container.password-visible .input__btn .eye-open{opacity:1 !important}
+
+    /* Альтернативно — по классу на кнопке */
+    .js-toggle-password.is-open .eye-closed{opacity:0 !important}
+    .js-toggle-password.is-open .eye-open{opacity:1 !important}
     
     /* Убираем рамку */
     .input--pass-container .input__btn:focus {
@@ -402,6 +399,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (toggleButton && passwordInput && passwordContainer) {
         // Инициализация состояния
         let isPasswordVisible = false;
+            const openUse  = toggleButton.querySelector('.eye-open use');
+            const closedUse = toggleButton.querySelector('.eye-closed use');
+            const getHref = (el)=> (el.getAttribute('href') || el.getAttribute('xlink:href') || '');
+            const setHref = (el, value)=> { if (!el) return; el.setAttribute('href', value); el.setAttribute('xlink:href', value); };
+            const spriteBase = (openUse ? getHref(openUse) : (closedUse ? getHref(closedUse) : ''))?.split('#')[0] || '{%static "assets/img/sprite.svg" %}';
+
+            const syncEyeIcons = () => {
+                if (isPasswordVisible) {
+                    setHref(openUse, `${spriteBase}#pass-open`);
+                    setHref(closedUse, `${spriteBase}#pass-open`);
+                } else {
+                    setHref(openUse, `${spriteBase}#pass-close`);
+                    setHref(closedUse, `${spriteBase}#pass-close`);
+                }
+            };
         
         toggleButton.addEventListener('click', function(e) {
             e.preventDefault();
@@ -409,27 +421,34 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Переключаем состояние
             isPasswordVisible = !isPasswordVisible;
-            console.log('Toggle clicked. isPasswordVisible:', isPasswordVisible);
-            console.log('passwordContainer:', passwordContainer);
             
             if (isPasswordVisible) {
                 // Показать пароль
                 passwordInput.type = 'text';
                 passwordContainer.classList.add('password-visible');
+                toggleButton.classList.add('is-open');
                 toggleButton.setAttribute('aria-label', 'Скрыть пароль');
+                toggleButton.setAttribute('aria-pressed', 'true');
                 toggleButton.title = 'Скрыть пароль';
             } else {
                 // Скрыть пароль
                 passwordInput.type = 'password';
                 passwordContainer.classList.remove('password-visible');
+                toggleButton.classList.remove('is-open');
                 toggleButton.setAttribute('aria-label', 'Показать пароль');
+                toggleButton.setAttribute('aria-pressed', 'false');
                 toggleButton.title = 'Показать пароль';
             }
+
+            // Обновляем путь к svg
+            syncEyeIcons();
         });
         
         // Устанавливаем начальные атрибуты
         toggleButton.setAttribute('aria-label', 'Показать пароль');
         toggleButton.title = 'Показать пароль';
+        // Начальная синхронизация путей svg
+        syncEyeIcons();
         
         // Добавляем поддержку клавиатуры
         toggleButton.addEventListener('keydown', function(e) {
