@@ -13,69 +13,42 @@
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
    <link rel="stylesheet" href="{%static "css/vendor.css"%}" />
   <link rel="stylesheet" href="{%static "css/main.css"%}?v=20251003" />
+  <style>
+    /* Header nav hover: keep visible, slightly lighten */
+    .header__nav .header__menu-item { text-decoration: none; }
+    .header__nav .header__menu-item span { color:#ffffff; transition: color .2s ease, opacity .2s ease; }
+    .header__nav .header__menu-item svg { stroke:#ffffff; fill:none; transition: stroke .2s ease, opacity .2s ease; }
+    .header__nav .header__menu-item:hover span,
+    .header__nav .header__menu-item:focus span { color:#dbe3ef; opacity:1 !important; }
+    .header__nav .header__menu-item:hover svg,
+    .header__nav .header__menu-item:focus svg { stroke:#dbe3ef; opacity:1 !important; visibility:visible !important; }
+  </style>
  </head>
  
    <body>
      <header class="header">
    <div class="container">
-     <div class="header__container">
-       <a href={% url "documents:cabinet" %} class="header__logo logo">
-         <img src={% static "assets/img/logo.svg" %} alt="БГУИР" />
-       </a>
-       <div class="header__menus js-menus">
-         <div class="header__btn js-menu-btn">
-           <div class="header__btn-icon">
-             <svg>
-               <use xlink:href="{%static "assets/img/sprite.svg"%}#profile"></use>
-             </svg>
-           </div>
-           <div class="header__btn-arrow">
-             <svg>
-               <use xlink:href="{%static "assets/img/sprite.svg"%}#header-btn"></use>
-             </svg>
-           </div>
-         </div>
-         <div class="header__menu js-menu">
-           <a href={% url "documents:cabinet" %} class="header__menu-item">
-             <div class="header__menu-icon">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab"></use>
-               </svg>
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab-active"></use>
-               </svg>
-             </div>
-            <span>Репозиторий</span>
-           </a>
-           <a href={% url "users:pers-cab" %} class="header__menu-item">
-             <div class="header__menu-icon">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user"></use>
-               </svg>
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user-active"></use>
-               </svg>
-             </div>
-             <span>Кабинет</span>
-           </a>
-          
-          
-           <a href={% url "logout" %} class="header__menu-item">
-             <div class="header__menu-icon">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-exit"></use>
-               </svg>
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#menu-exit-active"></use>
-               </svg>
-             </div>
-             <span>Выйти</span>
-           </a>
-         </div>
-       </div>
-     </div>
-   </div>
-  </header>
+        <div class="header__container" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;height:70px">
+          <div class="header__brand" style="color:#fff;font-weight:800;font-size:22px;">Антиплагиат «БГУИР: Университет»</div>
+          <nav class="header__nav" style="display:flex;align-items:center;gap:24px;">
+            <a href={% url "documents:cabinet" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
+              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab"></use></svg>
+              <span>Репозиторий</span>
+            </a>
+            <a href={% url "users:pers-cab" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
+              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user"></use></svg>
+              <span>Личный кабинет</span>
+            </a>
+            <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;gap:8px;background:#fff;color:#3b547f;">
+              <svg style="width:24px;height:24px;fill:currentColor;display:block">
+                <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
+              </svg>
+              Проверить документ
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
    <main>
     <!-- Django Messages -->
     {% if messages %}
@@ -133,7 +106,7 @@
         <div class="cab__container">
           <div class="cab__titles">
           <h1 class="cab__titles-title title">Репозиторий</h1>
-           <div class="cab__titles-left">
+          <div class="cab__titles-left" style="display:flex;justify-content:flex-end;gap:16px;">
              <div class="cab__search">
                <form action="{% url 'documents:cabinet/search' %}" method="GET" id="search-form" class="cab__search-form search">
                  <div class="search__container">
@@ -157,13 +130,6 @@
              </form>
              
              </div>
-             
-             <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load">
-               <svg>
-                 <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
-               </svg>
-               Проверить документ
-             </button>
            </div>
          </div>
          <div class="cab__block {% if documents|length == 0 %} --no-docs{%endif%}">
@@ -332,7 +298,7 @@
             .cab__desc-content{padding:12px 0 !important}
             .cab__desc-pagination.pagination{min-height:48px;align-items:center}
           </style>
-          <div class="cab__desc">
+           <div class="cab__desc">
              <div class="cab__desc-content">
                <div class="cab__desc-infos">
                  <div class="cab__desc-pagination pagination">
@@ -431,7 +397,7 @@
     .dropdown__btn svg{fill:#696f79}
     .dropdown__header:hover .dropdown__btn svg{fill:#3b547f}
   </style>
-  <button type="button" class="btn-up js-btn-up">
+   <button type="button" class="btn-up js-btn-up">
    <svg>
      <use xlink:href="{%static "assets/img/sprite.svg"%}#header-btn"></use>
    </svg>
