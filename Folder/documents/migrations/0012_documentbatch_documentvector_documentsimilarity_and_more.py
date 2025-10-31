@@ -3,14 +3,14 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import pgvector.django.vector
+from pgvector.django import VectorField
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('documents', '0011_alter_document_result'),
+        ('documents', '0012_enable_pgvector'),
     ]
 
     operations = [
@@ -37,8 +37,8 @@ class Migration(migrations.Migration):
             name='DocumentVector',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('vector', pgvector.django.vector.VectorField(blank=True, dimensions=384, null=True)),
-                ('normalized_vector', pgvector.django.vector.VectorField(blank=True, dimensions=384, null=True)),
+                ('vector', VectorField(blank=True, dimensions=384, null=True)),
+                ('normalized_vector', VectorField(blank=True, dimensions=384, null=True)),
                 ('vector_norm', models.FloatField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),

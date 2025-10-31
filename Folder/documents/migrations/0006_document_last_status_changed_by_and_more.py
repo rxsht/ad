@@ -13,10 +13,45 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='document',
-            name='last_status_changed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='status_changed_docs', to=settings.AUTH_USER_MODEL),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql='''
+DO $$
+BEGIN
+    -- Добавляем колонку, если ещё не существует
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'Document' AND column_name = 'last_status_changed_by_id'
+    ) THEN
+        ALTER TABLE "Document" ADD COLUMN "last_status_changed_by_id" bigint NULL;
+    END IF;
+
+    -- Добавляем внешний ключ, если ещё не существует
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        WHERE t.relname = 'Document' AND c.conname = 'document_last_status_changed_by_id_fk'
+    ) THEN
+        ALTER TABLE "Document"
+        ADD CONSTRAINT document_last_status_changed_by_id_fk
+        FOREIGN KEY ("last_status_changed_by_id") REFERENCES "User" ("id") DEFERRABLE INITIALLY DEFERRED;
+    END IF;
+END $$;
+''',
+                    reverse_sql='''
+-- Безопасного автоматического удаления внешнего ключа и колонки нет; no-op
+''',
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='document',
+                    name='last_status_changed_by',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='status_changed_docs', to=settings.AUTH_USER_MODEL),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='document',
