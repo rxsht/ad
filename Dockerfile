@@ -1,42 +1,85 @@
-FROM python:3.11.5
+# ============================================
+# STAGE 1: Builder - компиляция зависимостей
+# ============================================
+FROM python:3.11-slim as builder
 
-# Установка рабочей директории
-WORKDIR /app
+WORKDIR /build
 
-# Устанавливаем зависимости системы и netcat для health checks
-RUN apt-get update && apt-get install -y \
-    postgresql-client \
+# Установка только необходимых для компиляции пакетов
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     libpq-dev \
     gcc \
     g++ \
     make \
-    netcat-traditional \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Установка Rust для сборки tokenizers
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Установка Rust минимальной версией (только для компиляции)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Копируем файлы зависимостей
-COPY requirements.txt /app/
+# Копируем requirements для установки зависимостей
+COPY requirements.txt /build/
 
-# Установка Python зависимостей
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Установка Python зависимостей в виртуальное окружение
+# CPU-only версия PyTorch (экономит ~1GB!)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --user -r requirements.txt && \
+    # Заменяем torch на CPU-only версию для экономии места
+    pip install --no-cache-dir --user --upgrade --force-reinstall torch --index-url https://download.pytorch.org/whl/cpu || true
 
-# Копируем проект
-COPY . /app/
+# Очистка ненужных файлов после установки
+RUN find /root/.local -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true && \
+    find /root/.local -type f -name "*.pyc" -delete && \
+    find /root/.local -type f -name "*.pyo" -delete
 
-# Исправляем окончания строк entrypoint и кладём его вне /app, чтобы bind-монтирование не перетёрло
-RUN apt-get update && apt-get install -y dos2unix && \
-    cp /app/entrypoint.sh /usr/local/bin/entrypoint.sh && \
-    dos2unix /usr/local/bin/entrypoint.sh && \
+# Предзагрузка модели HuggingFace (опционально, но ускоряет старт)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('paraphrase-MiniLM-L6-v2')" || true
+
+# ============================================
+# STAGE 2: Runtime - минимальный финальный образ
+# ============================================
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Установка только runtime зависимостей (без компиляторов!)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    libpq5 \
+    netcat-traditional \
+    dos2unix \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && rm -rf /tmp/* /var/tmp/*
+
+# Копируем только скомпилированные пакеты из builder stage
+COPY --from=builder /root/.local /root/.local
+
+# Копируем предзагруженную модель HuggingFace (если нужно)
+COPY --from=builder /root/.cache/huggingface /root/.cache/huggingface 2>/dev/null || true
+
+# Убедимся что скрипты используют локальные пакеты
+ENV PATH=/root/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Копируем только необходимые файлы проекта
+COPY Folder/ /app/Folder/
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Исправляем окончания строк и права
+RUN dos2unix /usr/local/bin/entrypoint.sh && \
     chmod +x /usr/local/bin/entrypoint.sh && \
-    rm -rf /var/lib/apt/lists/*
-
-# Создаём необходимые директории
-RUN mkdir -p /app/Folder/media/pdf_files /app/Folder/media/txt_files /app/Folder/staticfiles
+    mkdir -p /app/Folder/media/pdf_files /app/Folder/media/txt_files /app/Folder/staticfiles && \
+    # Удаляем ненужные файлы из проекта
+    find /app -type d -name __pycache__ -exec rm -r {} + 2>/dev/null || true && \
+    find /app -type f -name "*.pyc" -delete && \
+    find /app -type f -name "*.pyo" -delete
 
 # Порт для приложения
 EXPOSE 8000
