@@ -1,7 +1,7 @@
 # ============================================
 # STAGE 1: Builder - компиляция зависимостей
 # ============================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
