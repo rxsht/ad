@@ -32,18 +32,24 @@
           <div class="header__brand" style="color:#fff;font-weight:800;font-size:22px;">Антиплагиат «БГУИР: Университет»</div>
           <nav class="header__nav" style="display:flex;align-items:center;gap:24px;">
             <a href={% url "documents:cabinet" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
-              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab"></use></svg>
+              <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24">
+                <path d="M13.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8.5" stroke-linejoin="round"/>
+                <path d="M13.5 2.5L20 8.5H14a.5.5 0 01-.5-.5V2.5z" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+                <path d="M8 12.5h8" stroke-linecap="round"/>
+                <path d="M8 16.5h8" stroke-linecap="round"/>
+                <path d="M8 20.5h5" stroke-linecap="round"/>
+              </svg>
               <span>Репозиторий</span>
             </a>
             <a href={% url "users:pers-cab" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
               <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user"></use></svg>
               <span>Личный кабинет</span>
             </a>
-            <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;gap:8px;background:#fff;color:#3b547f;">
-              <svg style="width:24px;height:24px;fill:currentColor;display:block">
+            <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#3b547f;font-size:14px;">
+              <svg style="width:20px;height:20px;fill:currentColor;display:block">
                 <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
               </svg>
-              Проверить документ
+              <span>Проверить документ</span>
             </button>
           </nav>
         </div>
@@ -136,30 +142,30 @@
            <div class="cab__header">
              <div class="cab__header-item">
                <div class="cab__header-name">Название</div>
-               <button type="button" class="cab__header-btn">
+               <a href="?sort={% if request.GET.sort == 'name_asc' %}name_desc{% else %}name_asc{% endif %}" class="cab__header-btn">
                  <svg>
                    <use xlink:href="{%static "assets/img/sprite.svg"%}#table-btn"></use>
                  </svg>
-               </button>
+               </a>
              </div>
              <div class="cab__header-item">
                <div class="cab__header-name">Статус</div>
              </div>
-             <div class="cab__header-item">
-               <div class="cab__header-name">Время</div>
-               <button type="button" class="cab__header-btn">
-                 <svg>
-                   <use xlink:href="{%static "assets/img/sprite.svg"%}#table-btn"></use>
-                 </svg>
-               </button>
-             </div>
+            <div class="cab__header-item">
+              <div class="cab__header-name">Дата</div>
+              <a href="?sort={% if request.GET.sort == 'time_asc' %}time_desc{% else %}time_asc{% endif %}" class="cab__header-btn">
+                <svg>
+                  <use xlink:href="{%static "assets/img/sprite.svg"%}#table-btn"></use>
+                </svg>
+              </a>
+            </div>
              <div class="cab__header-item">
                <div class="cab__header-name">Оригинальность</div>
-               <button type="button" class="cab__header-btn">
+               <a href="?sort={% if request.GET.sort == 'originality_asc' %}originality_desc{% else %}originality_asc{% endif %}" class="cab__header-btn">
                  <svg>
                    <use xlink:href="{%static "assets/img/sprite.svg"%}#table-btn"></use>
                  </svg>
-               </button>
+               </a>
              </div>
            </div>
           <div class="cab__content">
@@ -224,7 +230,31 @@
                       {% else %}—{% endif %}
                     </div>
                   </div>
-                   <div class="cab-results__more" style="display:flex;align-items:center;gap:10px;">
+                   <div class="cab-results__more" style="display:flex;align-items:center;gap:8px;">
+                     <!-- Кнопка Отправить на защиту -->
+                     {% if not document.on_defense and document.processing_status == 'completed' and document.result is not None %}
+                     <a href="{% url 'documents:send_to_defense' document.id %}" class="btn-send-defense" title="Отправить на защиту">
+                       Отправить на защиту
+                     </a>
+                     {% endif %}
+                     
+                     <!-- Кнопка Отменить с защиты -->
+                     {% if document.on_defense %}
+                     <a href="{% url 'documents:cancel_from_defense' document.id %}" class="btn-cancel-defense" title="Отменить в защите">
+                       Отменить в защите
+                     </a>
+                     {% endif %}
+                     
+                    <!-- Кнопка Скачать отчет -->
+                    {% if document.on_defense and document.result is not None %}
+                    <a href="{% url 'documents:download_file' document.id %}" class="download-report-btn" target="_blank" title="Скачать отчет с QR кодами">
+                      <svg style="width:20px;height:20px;fill:currentColor;display:block;">
+                        <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
+                      </svg>
+                    </a>
+                    {% endif %}
+                     
+                     <!-- Кнопка Скачать исходный файл -->
                      <a href="{{ document.data.url }}" class="download-btn" download title="Скачать исходный файл" style="display:inline-block;width:24px;height:24px;flex-shrink:0;">
                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100%;">
                          <path d="M12 3v12" stroke="#3b547f" stroke-width="2" stroke-linecap="round"/>
@@ -232,16 +262,6 @@
                          <path d="M4 20h16" stroke="#3b547f" stroke-width="2" stroke-linecap="round"/>
                        </svg>
                      </a>
-                     {% if document.result is not None %}
-                     <a href="{% url 'documents:download_file' document.id %}" class="download-report-btn" target="_blank" title="Скачать отчет с QR кодами" style="display:inline-block;width:24px;height:24px;flex-shrink:0;">
-                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:100%;">
-                         <path d="M6 3C5.44772 3 5 3.44772 5 4V20C5 20.5523 5.44772 21 6 21H17C17.5523 21 18 20.5523 18 20V8L13 3H6Z" fill="#ffffff" stroke="#3b547f" stroke-width="2"/>
-                         <path d="M17 4L20 7H17V4Z" fill="#ffffff" stroke="#3b547f" stroke-width="2"/>
-                         <path d="M8 11H15" stroke="#3b547f" stroke-width="1.5" stroke-linecap="round"/>
-                         <path d="M8 14H15" stroke="#3b547f" stroke-width="1.5" stroke-linecap="round"/>
-                       </svg>
-                     </a>
-                     {% endif %}
                    </div>
                  </div>
                  {% endfor %}
@@ -307,6 +327,67 @@
             .cab__desc{margin-top:0 !important;padding-top:0 !important}
             .cab__desc-content{padding:12px 0 !important}
             .cab__desc-pagination.pagination{min-height:48px;align-items:center}
+            
+            /* Оптимизация grid-колонок для размещения кнопок */
+            .cab--cab .cab__header {
+                grid-template-columns: 30% 15% 12% 10% auto !important;
+            }
+            .cab__item {
+                grid-template-columns: 30% 15% 12% 10% auto !important;
+            }
+            
+            /* Стили для кнопок сортировки */
+            .cab__header-btn {
+                display: inline-flex !important;
+                align-items: center;
+                cursor: pointer;
+            }
+            
+            /* Центрирование и размер шрифта для столбцов */
+            .cab__header-item:nth-child(n+2) {
+                justify-content: center !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+            .cab__item-block:nth-child(n+2) {
+                justify-content: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+            .cab__item-block:nth-child(n+2) > div:first-child {
+                text-align: center !important;
+                width: 100%;
+            }
+            .cab__item-block:nth-child(n+2) > div:last-child {
+                text-align: center !important;
+                width: 100%;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            .cab__item-block:nth-child(n+2) > div > span {
+                text-align: center !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            .cab__item-block:nth-child(2) {
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            
+            /* Уменьшение размера шрифта */
+            .cab__item-block div:not(.cab__item-status) {
+                font-size: 13px !important;
+            }
+            .cab__header-name {
+                font-size: 13px !important;
+            }
+            .cab__item-status {
+                font-size: 12px !important;
+            }
           </style>
            <div class="cab__desc">
              <div class="cab__desc-content">
@@ -398,8 +479,8 @@
       align-items: center;
       justify-content: center;
     }
-    /* Футер 40px */
-    .footer { height: 40px !important; min-height: 40px !important; padding: 0 !important; margin: 0 !important; }
+    /* Футер 60px */
+    .footer { height: 60px !important; min-height: 60px !important; padding: 0 !important; margin: 0 !important; }
 
     /* Показать стрелку у поля выбора типа работы */
     .dropdown__header{position:relative}
@@ -496,62 +577,63 @@
          </div>
          <div class="modal-load__drag-area drag-area">
            <div class="drag-area__form">
-             <button class="drag-area__btn btn btn-def" type="button" id="upload-btn">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                 <polyline points="17 8 12 3 7 8"></polyline>
-                 <line x1="12" y1="3" x2="12" y2="15"></line>
-               </svg>
-               Загрузить документ
-             </button>
-             <p class="drag-area__up">ИЛИ ПЕРЕТАЩИТЕ ФАЙЛЫ СЮДА</p>
-            <p class="drag-area__sm">
-              Допустимые форматы: PDF, DOCX <br />
-              Максимальный размер: 50 МБ
-            </p>
-            <input type="file" name="data" id="file-input-custom" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" />
-           </div>
-           <div class="drag-area__files"></div>
-         </div>
-         <button class="modal-load__btn btn btn-def" type="submit" form="modal-doc-form">Проверить</button>
-       </form>
-     </div>
-   </div>
-   <div
-     class="graph-modal__container modal-doc modal-protection"
-     role="dialog"
-     aria-modal="true"
-     data-graph-target="modal-protection"
-   >
-     <button class="btn-reset js-modal-close graph-modal__close" aria-label="Закрыть модальное окно">
-       <svg>
-         <use xlink:href="{%static "assets/img/sprite.svg"%}#modal-close"></use>
-       </svg>
-     </button>
-     <div class="modal-doc__container">
-       <h2 class="modal-doc__title">Отправить документ на защиту</h2>
-       <p class="modal-doc__subtitle">Вы уверены, что готовы отправить документ на защиту необратима?</p>
-       <div class="modal-doc__items">
-         <div class="modal-doc__item">
-           <div>Оригинальность</div>
-           <div class="js-modal-doc-orig"></div>
-         </div>
-         <div class="modal-doc__item">
-           <div>Название</div>
-           <div class="js-modal-doc-file"></div>
-         </div>
-       </div>
-       
-       <div class="modal-doc__btns">
-         <a class="modal-doc__btn btn-def js-modal-doc-url js-modal-close">
-           Отправить
-         </a>
-       </div>
-     
-     </div>
-   </div>
- </div>
- <script src="https://unpkg.com/@popperjs/core@2"></script>
+            <button class="drag-area__btn btn btn-def" type="button" id="upload-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M9 12l3-3 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M12 10v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+              Загрузить документ
+            </button>
+            <p class="drag-area__up">ИЛИ ПЕРЕТАЩИТЕ ФАЙЛЫ СЮДА</p>
+           <p class="drag-area__sm">
+             Допустимые форматы: PDF, DOCX <br />
+             Максимальный размер: 50 МБ
+           </p>
+           <input type="file" name="data" id="file-input-custom" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" />
+          </div>
+          <div class="drag-area__files"></div>
+        </div>
+        <button class="modal-load__btn btn btn-def" type="submit" form="modal-doc-form">Проверить</button>
+      </form>
+    </div>
+  </div>
+  <div
+    class="graph-modal__container modal-doc modal-protection"
+    role="dialog"
+    aria-modal="true"
+    data-graph-target="modal-protection"
+  >
+    <button class="btn-reset js-modal-close graph-modal__close" aria-label="Закрыть модальное окно">
+      <svg>
+        <use xlink:href="{%static "assets/img/sprite.svg"%}#modal-close"></use>
+      </svg>
+    </button>
+    <div class="modal-doc__container">
+      <h2 class="modal-doc__title">Отправить документ на защиту</h2>
+      <p class="modal-doc__subtitle">Вы уверены, что готовы отправить документ на защиту необратима?</p>
+      <div class="modal-doc__items">
+        <div class="modal-doc__item">
+          <div>Оригинальность</div>
+          <div class="js-modal-doc-orig"></div>
+        </div>
+        <div class="modal-doc__item">
+          <div>Название</div>
+          <div class="js-modal-doc-file"></div>
+        </div>
+      </div>
+      
+      <div class="modal-doc__btns">
+        <a class="modal-doc__btn btn-def js-modal-doc-url js-modal-close">
+          Отправить
+        </a>
+      </div>
+    
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://unpkg.com/tippy.js@6"></script>
 <script src="{%static "js/main.js"%}"></script>
 
@@ -875,6 +957,65 @@ input[type="file"] {
 .drag-area.--files .drag-area__form {
     border-color: #28a745;
 }
+
+/* Стили для новых кнопок защиты */
+.btn-send-defense {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 33px;
+    height: 32.55px;
+    background-color: #3b547f;
+    color: #ffffff !important;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.btn-send-defense:hover {
+    background-color: #5f75a7;
+}
+
+.btn-cancel-defense {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background-color: #ffffff;
+    color: #3b547f !important;
+    border: 1px solid #3b547f;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.btn-cancel-defense:hover {
+    background-color: #3b547f;
+    color: #ffffff !important;
+}
+
+.download-report-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    background-color: #ffffff;
+    color: #3b547f !important;
+    border: 1px solid #3b547f;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+}
+
+.download-report-btn:hover {
+    background-color: #3b547f;
+    color: #ffffff !important;
+}
+
 </style>
 
   </body>

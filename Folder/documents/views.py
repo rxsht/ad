@@ -63,6 +63,58 @@ def change_statusb(request, document_id):
     return redirect('documents:results')   
 
 @login_required
+def send_to_defense(request, document_id):
+    """Отправить документ на защиту"""
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    document = get_object_or_404(Document, id=document_id, user=request.user)
+    
+    # Проверяем, что документ уже проверен
+    if document.processing_status != 'completed':
+        messages.warning(request, 'Документ еще не обработан')
+        return redirect('documents:cabinet')
+    
+    # Устанавливаем документ на защиту
+    document.on_defense = True
+    document.sent_to_defense_at = timezone.now()
+    document.save()
+    
+    # Удаляем остальные документы пользователя старше 3 дней (кроме того что на защите)
+    three_days_ago = timezone.now() - timedelta(days=3)
+    other_docs = Document.objects.filter(
+        user=request.user
+    ).exclude(id=document_id).exclude(on_defense=True)
+    
+    # Удаляем файлы и записи
+    for doc in other_docs:
+        if doc.time_created < three_days_ago:
+            try:
+                if doc.data:
+                    doc.data.delete(save=False)
+                if doc.txt_file:
+                    doc.txt_file.delete(save=False)
+                doc.delete()
+            except Exception as e:
+                print(f"Ошибка удаления документа {doc.id}: {e}")
+    
+    messages.success(request, f'Документ "{document.name}" отправлен на защиту')
+    return redirect('documents:cabinet')
+
+@login_required
+def cancel_from_defense(request, document_id):
+    """Отменить документ с защиты"""
+    document = get_object_or_404(Document, id=document_id, user=request.user)
+    
+    # Снимаем с защиты
+    document.on_defense = False
+    document.sent_to_defense_at = None
+    document.save()
+    
+    messages.success(request, f'Документ "{document.name}" снят с защиты')
+    return redirect('documents:cabinet')
+
+@login_required
 def cabinet(request):
     query = request.GET.get('q', None)
     is_searching = bool(query)
@@ -113,6 +165,20 @@ def cabinet(request):
     else:
         documents = base_qs
 
+    # Сортировка документов
+    sort_by = request.GET.get('sort', 'time_desc')
+    if sort_by == 'name_asc':
+        documents = documents.order_by('name')
+    elif sort_by == 'name_desc':
+        documents = documents.order_by('-name')
+    elif sort_by == 'time_asc':
+        documents = documents.order_by('time_created')
+    elif sort_by == 'time_desc':
+        documents = documents.order_by('-time_created')
+    elif sort_by == 'originality_asc':
+        documents = documents.order_by('result')
+    elif sort_by == 'originality_desc':
+        documents = documents.order_by('-result')
     
     page_number = request.GET.get('page', 1)
     paginator = Paginator(documents, 10)  
