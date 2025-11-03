@@ -13,7 +13,7 @@
 ## 🏗️ Технологии
 
 - **Backend:** Django 4.2.9, Gunicorn
-- **ML/NLP:** PyTorch 2.0.1, sentence-transformers 2.2.2
+- **ML/NLP:** PyTorch 2.1.0, sentence-transformers 2.5.1
 - **База данных:** PostgreSQL + pgvector
 - **Очереди:** Celery + Redis
 - **Векторизация:** paraphrase-MiniLM-L6-v2
