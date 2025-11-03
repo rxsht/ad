@@ -37,6 +37,7 @@ services:
       - .:/app
       - media_files:/app/Folder/media
       - static_files:/app/Folder/staticfiles
+      - hf_cache:/root/.cache/huggingface
     ports:
       - "8080:8000"
     depends_on:
@@ -64,6 +65,8 @@ services:
       - media_files:/app/Folder/media
       - hf_cache:/root/.cache/huggingface
     depends_on:
+      web:
+        condition: service_started
       db:
         condition: service_healthy
       redis:

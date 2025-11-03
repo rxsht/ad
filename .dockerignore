@@ -28,6 +28,8 @@ db.sqlite3-journal
 # Media files (will be mounted as volumes)
 /media/
 /Folder/media/
+/Folder/media/pdf_files/
+/Folder/media/txt_files/
 
 # Environment variables
 .env
@@ -42,11 +44,11 @@ env.template
 *~
 .DS_Store
 
-# Documentation (not needed in container)
+# Documentation
 *.md
-!README.md
+README.md
 
-# Windows batch files (not needed in Linux container)
+# Windows batch files
 *.bat
 
 # Testing
@@ -60,16 +62,13 @@ htmlcov/
 *.bak
 *.swp
 
-# Docker files (no need to copy into image)
-Dockerfile
-docker-compose*.yml
-.dockerignore
+# Keep Dockerfile and docker-compose.yml in the image
 
 # CI/CD
 .github/
 .gitlab-ci.yml
 
-# Node modules (if any)
+# Node modules
 node_modules/
 npm-debug.log
 
@@ -85,3 +84,9 @@ Thumbs.db
 nginx.conf
 ssl/
 
+# Debug toolbar assets
+debug_toolbar/
+
+# Requirements files
+requirements*.txt
+!requirements.txt

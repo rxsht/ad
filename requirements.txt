@@ -1,53 +1,18 @@
-﻿# Django и основные зависимости
 Django==4.2.9
-asgiref==3.8.1
-sqlparse==0.5.3
-tzdata==2024.2
-
-# База данных
-psycopg2==2.9.10
+psycopg2-binary==2.9.9
 pgvector==0.2.4
-
-# Веб-сервер
-gunicorn
-
-# Отладка (только для разработки)
-django-debug-toolbar==4.4.5
-
-# Обработка PDF и DOCX
+gunicorn==21.2.0
 pdfminer.six==20240706
 python-docx==1.1.0
-PyMuPDF>=1.23.0
-Pillow>=10.0.0
-
-# Машинное обучение и векторизация
-numpy==2.0.2
-torch==2.5.1
+PyMuPDF==1.23.25
+Pillow==10.2.0
+numpy==1.23.5
+transformers==4.30.0
 sentence-transformers==2.2.2
-transformers==4.35.0
-tokenizers>=0.14,<0.15
-
-# Обработка текста
-pymystem3==0.2.0
-
-# LDAP аутентификация
-ldap3==2.9.1
-
-# Celery для фоновых задач
 celery==5.3.4
 redis==5.0.1
 flower==2.0.1
-
-# Криптография
+ldap3==2.9.1
 cryptography==44.0.0
-
-# HTTP запросы
+pymystem3==0.2.0
 requests==2.32.3
-urllib3==2.3.0
-certifi==2024.12.14
-charset-normalizer==3.4.1
-idna==3.10
-
-# Утилиты
-tqdm==4.67.1
-colorama==0.4.6
