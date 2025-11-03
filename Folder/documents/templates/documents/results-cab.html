@@ -31,18 +31,24 @@
           <div class="header__brand" style="color:#fff;font-weight:800;font-size:22px;">Антиплагиат «БГУИР: Университет»</div>
           <nav class="header__nav" style="display:flex;align-items:center;gap:24px;">
             <a href={% url "documents:cabinet" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
-              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-cab"></use></svg>
+              <svg style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24">
+                <path d="M13.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8.5" stroke-linejoin="round"/>
+                <path d="M13.5 2.5L20 8.5H14a.5.5 0 01-.5-.5V2.5z" stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+                <path d="M8 12.5h8" stroke-linecap="round"/>
+                <path d="M8 16.5h8" stroke-linecap="round"/>
+                <path d="M8 20.5h5" stroke-linecap="round"/>
+              </svg>
               <span>Репозиторий</span>
             </a>
             <a href={% url "users:pers-cab" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
               <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user"></use></svg>
               <span>Личный кабинет</span>
             </a>
-            <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;gap:8px;background:#fff;color:#3b547f;">
-              <svg style="width:24px;height:24px;fill:currentColor;display:block">
+            <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#3b547f;font-size:14px;">
+              <svg style="width:20px;height:20px;fill:currentColor;display:block">
                 <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
               </svg>
-              Проверить документ
+              <span>Проверить документ</span>
             </button>
           </nav>
         </div>
@@ -297,8 +303,8 @@
     align-items: center;
     justify-content: center;
   }
-  /* Футер 40px */
-  .footer { height: 40px !important; min-height: 40px !important; padding: 0 !important; margin: 0 !important; }
+  /* Футер 60px */
+  .footer { height: 60px !important; min-height: 60px !important; padding: 0 !important; margin: 0 !important; }
 
   /* Показать стрелку у поля выбора типа работы (в модалке загрузки) */
   .dropdown__header{position:relative}

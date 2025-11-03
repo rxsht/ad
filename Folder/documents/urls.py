@@ -15,6 +15,8 @@ urlpatterns = [
     path('change-status/<int:document_id>/', views.change_status, name='change_status'),
     path('change-statusa/<int:document_id>/', views.change_statusa, name='change_statusa'),
     path('change-statusb/<int:document_id>/', views.change_statusb, name='change_statusb'),
+    path('send-to-defense/<int:document_id>/', views.send_to_defense, name='send_to_defense'),
+    path('cancel-from-defense/<int:document_id>/', views.cancel_from_defense, name='cancel_from_defense'),
     path('download-file/<int:document_id>/', views.download_file, name='download_file'),
     
     # API для статуса обработки

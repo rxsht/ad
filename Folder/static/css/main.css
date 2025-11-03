@@ -696,7 +696,7 @@ main {
 .drag-area {
   position: relative;
   width: 100%;
-  height: 204px;
+  height: 300px;
 }
 .drag-area__form {
   opacity: 1;
@@ -1104,7 +1104,7 @@ main {
 
 .footer {
   background: #3b547f;
-  height: 40px;
+  height: 60px;
 }
 
 .search {
@@ -1805,7 +1805,7 @@ main {
   column-gap: 20px;
 }
 .cab__content {
-  min-height: 676px;
+  min-height: 750px;
   height: 100%;
   background-color: #ffffff;
   border-bottom: 1px solid #3b547f;
@@ -1913,14 +1913,14 @@ main {
   color: #d97706;
   border: none;
 }
-.cab__item.--success .cab__item-status { /* Проверен: светло-голубой */
-  color: #0284c7;
-  background-color: #e0f2fe;
-  border: none;
-}
-.cab__item.--accepted .cab__item-status { /* Зачтен: салатовый */
+.cab__item.--success .cab__item-status { /* Проверен: зеленый */
   color: #047857;
   background-color: #d1fae5;
+  border: none;
+}
+.cab__item.--accepted .cab__item-status { /* Зачтен: голубой */
+  color: #0284c7;
+  background-color: #e0f2fe;
   border: none;
 }
 .cab__item.--rejected .cab__item-status {

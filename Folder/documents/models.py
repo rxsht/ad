@@ -88,6 +88,8 @@ class Document(models.Model):
     processing_completed_at = models.DateTimeField(blank=True, null=True, verbose_name='Завершение обработки')
     processing_error = models.TextField(blank=True, null=True, verbose_name='Ошибка обработки')
     detailed_analysis = models.JSONField(blank=True, null=True, verbose_name='Детальный анализ плагиата')
+    on_defense = models.BooleanField(default=False, verbose_name='На защите')
+    sent_to_defense_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата отправки на защиту')
 
     class Meta:
         db_table = 'Document'
@@ -259,7 +261,7 @@ class Document(models.Model):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'get_text_preview', 'status', 'time_created')
+    list_display = ('name', 'get_text_preview', 'status', 'on_defense', 'time_created')
 
     def get_text_preview(self, obj):
         return format_html("<pre>{}</pre>", obj.get_text_preview())
