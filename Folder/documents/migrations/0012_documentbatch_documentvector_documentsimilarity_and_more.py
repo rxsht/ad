@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import pgvector.django.vector
+from pgvector.django import VectorField
 
 
 class Migration(migrations.Migration):
@@ -14,6 +14,19 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Enable pgvector extension before using VectorField
+        # Use DO block to safely create extension without error if it already exists
+        migrations.RunSQL(
+            sql="""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') THEN
+                    CREATE EXTENSION vector;
+                END IF;
+            END $$;
+            """,
+            reverse_sql='DROP EXTENSION IF EXISTS vector;',
+        ),
         migrations.CreateModel(
             name='DocumentBatch',
             fields=[
@@ -37,8 +50,8 @@ class Migration(migrations.Migration):
             name='DocumentVector',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('vector', pgvector.django.vector.VectorField(blank=True, dimensions=384, null=True)),
-                ('normalized_vector', pgvector.django.vector.VectorField(blank=True, dimensions=384, null=True)),
+                ('vector', VectorField(blank=True, dimensions=384, null=True)),
+                ('normalized_vector', VectorField(blank=True, dimensions=384, null=True)),
                 ('vector_norm', models.FloatField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),

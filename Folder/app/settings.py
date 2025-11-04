@@ -75,6 +75,7 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Для обслуживания статических файлов
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -196,7 +197,10 @@ STATICFILES_DIRS = [
     Path(__file__).resolve().parent.parent / "static"
 ]
 
-MEDIA_URL = 'media/'
+# WhiteNoise настройки для обслуживания статических файлов
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+MEDIA_URL = '/media/'
 MEDIA_ROOT = Path(__file__).resolve().parent.parent / "media"
 
 LOGIN_URL = '/users/main/'

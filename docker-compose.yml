@@ -12,7 +12,7 @@ services:
     volumes:
       - pgvector_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,6 +58,7 @@ services:
   celery:
     build: .
     container_name: celery_worker
+    entrypoint: /usr/local/bin/entrypoint-celery.sh
     command: celery -A Folder.app worker --loglevel=info
     volumes:
       - .:/app

@@ -38,8 +38,10 @@ ENV PATH=/root/.local/bin:$PATH \
 
 COPY Folder/ /app/Folder/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint-celery.sh /usr/local/bin/entrypoint-celery.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint-celery.sh && \
     mkdir -p /app/Folder/media/pdf_files /app/Folder/media/txt_files /app/Folder/staticfiles
 
 EXPOSE 8000
