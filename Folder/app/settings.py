@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     
     'documents',
     'users',
+    'pgvector.django',
 ]
 
 # Debug toolbar только в DEBUG режиме

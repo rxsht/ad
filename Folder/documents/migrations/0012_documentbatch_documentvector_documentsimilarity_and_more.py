@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('documents', '0011_alter_document_result'),
+        ('documents', '0012_enable_pgvector'),
     ]
 
     operations = [
