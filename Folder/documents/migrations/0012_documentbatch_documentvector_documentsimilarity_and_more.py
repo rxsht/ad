@@ -14,19 +14,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Enable pgvector extension before using VectorField
-        # Use DO block to safely create extension without error if it already exists
-        migrations.RunSQL(
-            sql="""
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') THEN
-                    CREATE EXTENSION vector;
-                END IF;
-            END $$;
-            """,
-            reverse_sql='DROP EXTENSION IF EXISTS vector;',
-        ),
         migrations.CreateModel(
             name='DocumentBatch',
             fields=[
