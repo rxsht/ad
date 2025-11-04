@@ -6,10 +6,11 @@ pdfminer.six==20240706
 python-docx==1.1.0
 PyMuPDF==1.23.25
 Pillow==10.2.0
-numpy==1.23.5
-transformers==4.30.0
-sentence-transformers==2.2.2
-huggingface-hub==0.25.2
+numpy==1.24.3
+# TEMPORARY DISABLED: ML libraries to avoid conflicts and reduce Docker image size
+# sentence-transformers==2.3.0
+# transformers==4.32.0
+# huggingface_hub==0.15.1
 celery==5.3.4
 redis==5.0.1
 flower==2.0.1
