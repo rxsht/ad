@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{%static "css/vendor.css"%}" />
-  <link rel="stylesheet" href="{%static "css/main.css"%}" />
+  <link rel="stylesheet" href="{% static "css/vendor.css" %}" />
+  <link rel="stylesheet" href="{% static "css/main.css" %}" />
   <style>
     /* Header nav hover: keep visible, slightly lighten */
     .header__nav .header__menu-item { text-decoration: none; }
@@ -41,12 +41,12 @@
               <span>Репозиторий</span>
             </a>
             <a href={% url "users:pers-cab" %} class="header__menu-item" style="display:flex;align-items:center;gap:6px;color:#fff;">
-              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{%static "assets/img/sprite.svg"%}#menu-user"></use></svg>
+              <svg style="width:20px;height:20px;stroke:#fff;fill:none"><use xlink:href="{% static "assets/img/sprite.svg" %}#menu-user"></use></svg>
               <span>Личный кабинет</span>
             </a>
             <button class="cab__btn btn btn-def" type="button" data-graph-path="modal-load" style="width:auto;padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#3b547f;font-size:14px;">
               <svg style="width:20px;height:20px;fill:currentColor;display:block">
-                <use xlink:href="{%static "assets/img/sprite.svg"%}#paper"></use>
+                <use xlink:href="{% static "assets/img/sprite.svg" %}#paper"></use>
               </svg>
               <span>Проверить документ</span>
             </button>
@@ -91,7 +91,7 @@
               <div class="cab__header-name">№</div>
               <button type="button" class="cab__header-btn">
                 <svg>
-                  <use xlink:href"{%static "assets/img/sprite.svg"%}#table-btn"></use>
+                  <use xlink:href="{% static "assets/img/sprite.svg" %}#table-btn"></use>
                 </svg>
               </button>
             </div>
@@ -99,7 +99,7 @@
               <div class="cab__header-name">ФИО</div>
               <button type="button" class="cab__header-btn">
                 <svg>
-                  <use xlink:href"{%static "assets/img/sprite.svg"%}#table-btn"></use>
+                  <use xlink:href="{% static "assets/img/sprite.svg" %}#table-btn"></use>
                 </svg>
               </button>
             </div>
@@ -107,7 +107,7 @@
               <div class="cab__header-name">Дата</div>
               <button type="button" class="cab__header-btn">
                 <svg>
-                  <use xlink:href"{%static "assets/img/sprite.svg"%}#table-btn"></use>
+                  <use xlink:href="{% static "assets/img/sprite.svg" %}#table-btn"></use>
                 </svg>
               </button>
             </div>
@@ -164,10 +164,10 @@
                     <div class='cab-results__result'>
                       <p>—</p>
                       <svg class='success-icon'>
-                        <use xlink:href"{%static "assets/img/sprite.svg"%}#result-success"></use>
+                        <use xlink:href="{% static "assets/img/sprite.svg" %}#result-success"></use>
                       </svg>
                       <svg class='no-success-icon'>
-                        <use xlink:href"{%static "assets/img/sprite.svg"%}#result-error"></use>
+                        <use xlink:href="{% static "assets/img/sprite.svg" %}#result-error"></use>
                       </svg>
                     </div>
                   </div>
@@ -180,11 +180,11 @@
                     <div class="more-btns__content">
                       <button type='button' class='more-btns__link'>
                         <div class="more-btns__link-icon">
-                          <svg>
-                            <use xlink:href"{%static "assets/img/sprite.svg"%}#results-result"></use>
+                      <svg>
+                        <use xlink:href="{% static "assets/img/sprite.svg" %}#results-result"></use>
                           </svg>
                           <svg>
-                            <use xlink:href"{%static "assets/img/sprite.svg"%}#results-result-active"></use>
+                        <use xlink:href="{% static "assets/img/sprite.svg" %}#results-result-active"></use>
                           </svg>
                         </div>
                         <span><a href="{% url 'documents:download_file' document.id %}" class="btn btn-primary js-doc-id">Результаты</a></span>
@@ -192,10 +192,10 @@
                       <button type='button' class='more-btns__link' data-graph-path="modal-doc">
                         <div class="more-btns__link-icon">
                           <svg>
-                            <use xlink:href"{%static "assets/img/sprite.svg"%}#results-star"></use>
+                            <use xlink:href="{% static "assets/img/sprite.svg" %}#results-star"></use>
                           </svg>
                           <svg>
-                            <use xlink:href"{%static "assets/img/sprite.svg"%}#results-star-active"></use>
+                            <use xlink:href="{% static "assets/img/sprite.svg" %}#results-star-active"></use>
                           </svg>
                         </div>
                         <span>Оценить</span>
@@ -270,7 +270,7 @@
   </section>
   <button type="button" class="btn-up js-btn-up">
   <svg>
-    <use xlink:href"{%static "assets/img/sprite.svg"%}#header-btn"></use>
+    <use xlink:href="{% static "assets/img/sprite.svg" %}#header-btn"></use>
   </svg>
 </button>
 
