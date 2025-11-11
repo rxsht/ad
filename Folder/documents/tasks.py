@@ -47,7 +47,7 @@ def process_document_plagiarism(self, document_id):
                 raise Exception(f"Неподдерживаемый формат файла: {file_extension}")
             
             txt_filename = f"{doc.name}.txt"
-            txt_file_path = os.path.join("media", "txt_files", txt_filename)
+            txt_file_path = os.path.join(settings.MEDIA_ROOT, "txt_files", txt_filename)
             
             # Создаём директорию если её нет
             os.makedirs(os.path.dirname(txt_file_path), exist_ok=True)

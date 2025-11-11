@@ -4,6 +4,7 @@
 
 import os
 from django.utils import timezone
+from django.conf import settings
 
 from documents.models import Document, Status
 from documents import text_clining, vector
@@ -36,7 +37,7 @@ def process_document_sync(document_id):
             raise Exception(f"Неподдерживаемый формат файла: {file_extension}")
         
         txt_filename = f"{doc.name}.txt"
-        txt_file_path = os.path.join("media", "txt_files", txt_filename)
+        txt_file_path = os.path.join(settings.MEDIA_ROOT, "txt_files", txt_filename)
         
         os.makedirs(os.path.dirname(txt_file_path), exist_ok=True)
         

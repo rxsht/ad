@@ -9,13 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt /build/
 
-# TEMPORARY DISABLED: PyTorch installation for smaller Docker image
-# RUN pip install --no-cache-dir --upgrade pip
-# RUN pip install --no-cache-dir --user torch==2.1.0+cpu torchvision==0.16.0+cpu --index-url https://download.pytorch.org/whl/cpu
-
-# Установка pip и зависимостей
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir --user -r requirements.txt
+# Установка PyTorch CPU версии и остальных зависимостей
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --user torch==2.1.0+cpu torchvision==0.16.0+cpu --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --user -r requirements.txt
 
 # Чистка
 RUN find /root/.local -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \

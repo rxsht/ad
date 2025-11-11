@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*.log
+Folder/media/
+media/
+tmp_shell.py
+
