@@ -26,15 +26,15 @@ fi
 echo "==> Running migrations..."
 python Folder/manage.py migrate --noinput
 
-echo "==> Creating superuser (admin/admin)..."
+echo "==> Creating superuser (admin123/admin123)..."
 python Folder/manage.py shell << EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', '', 'admin')
-    print("✓ Superuser 'admin' created successfully!")
+if not User.objects.filter(username='admin123').exists():
+    User.objects.create_superuser('admin123', '', 'admin123')
+    print("✓ Superuser 'admin123' created successfully!")
 else:
-    print("✓ Superuser 'admin' already exists")
+    print("✓ Superuser 'admin123' already exists")
 EOF
 
 echo "==> Collecting static files..."

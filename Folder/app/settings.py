@@ -69,9 +69,13 @@ INSTALLED_APPS = [
     'users',
 ]
 
-# Debug toolbar только в DEBUG режиме
-if DEBUG:
-    INSTALLED_APPS.append('debug_toolbar')
+# Debug toolbar только в DEBUG режиме и если установлен
+try:
+    import debug_toolbar
+    if DEBUG:
+        INSTALLED_APPS.append('debug_toolbar')
+except ImportError:
+    pass
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -84,9 +88,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Debug toolbar только в DEBUG режиме
-if DEBUG:
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+# Debug toolbar только в DEBUG режиме и если установлен
+try:
+    import debug_toolbar
+    if DEBUG:
+        MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+except ImportError:
+    pass
 
 ROOT_URLCONF = 'app.urls'
 
