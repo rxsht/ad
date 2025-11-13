@@ -4,4 +4,10 @@ __pycache__/
 Folder/media/
 media/
 tmp_shell.py
+tatus
+"e down"
+*.swp
+*.swo
+*~
+.DS_Store
 

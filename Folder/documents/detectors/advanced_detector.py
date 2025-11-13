@@ -7,6 +7,7 @@ import re
 import numpy as np
 from typing import List, Tuple, Dict
 from collections import Counter
+from django.conf import settings
 
 from documents.models import Document
 from documents.sim_cos import (
@@ -138,7 +139,7 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                 txt_path = document.txt_file.path
             except Exception:
                 # Fallback если .path не работает
-                txt_path = os.path.join('media', str(document.txt_file))
+                txt_path = os.path.join(settings.MEDIA_ROOT, str(document.txt_file))
             
             if not os.path.exists(txt_path):
                 result['status'] = 'error'
@@ -157,6 +158,10 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             # Находим похожие документы
             similar_docs = self._find_similar_documents(document)
             
+            # Если векторы недоступны, используем текстовый анализ как fallback
+            if not similar_docs and not document.vector:
+                similar_docs = self._find_similar_documents_text_based(document, document_text)
+            
             if not similar_docs:
                 result['originality'] = 100.0
                 result['similarity'] = 0.0
@@ -174,7 +179,7 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                         try:
                             similar_txt_path = doc.txt_file.path
                         except Exception:
-                            similar_txt_path = os.path.join('media', str(doc.txt_file))
+                            similar_txt_path = os.path.join(settings.MEDIA_ROOT, str(doc.txt_file))
                         
                         if os.path.exists(similar_txt_path):
                             with open(similar_txt_path, 'r', encoding='utf-8') as f:
@@ -315,5 +320,70 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             
         except Exception as e:
             print(f"Ошибка при поиске похожих документов: {e}")
+        
+        return similar_docs
+    
+    def _find_similar_documents_text_based(self, document: Document, document_text: str, max_docs: int = 50) -> List[Tuple[Document, float]]:
+        """
+        Находит похожие документы на основе текстового анализа (fallback когда векторы недоступны)
+        
+        Args:
+            document: Документ для анализа
+            document_text: Текст документа
+            max_docs: Максимальное количество документов для проверки (для производительности)
+            
+        Returns:
+            Список кортежей (документ, схожесть)
+        """
+        similar_docs = []
+        
+        try:
+            # Предобрабатываем текст документа
+            document_text_clean = self.preprocess_text(document_text)
+            
+            # Получаем ограниченное количество документов с TXT файлами
+            all_docs = Document.objects.exclude(id=document.id).filter(
+                txt_file__isnull=False
+            ).exclude(txt_file='')[:max_docs]
+            
+            for doc in all_docs:
+                if not doc.txt_file:
+                    continue
+                
+                # Получаем путь к TXT файлу
+                try:
+                    similar_txt_path = doc.txt_file.path
+                except Exception:
+                    similar_txt_path = os.path.join(settings.MEDIA_ROOT, str(doc.txt_file))
+                
+                if not os.path.exists(similar_txt_path):
+                    continue
+                
+                # Читаем текст похожего документа
+                try:
+                    with open(similar_txt_path, 'r', encoding='utf-8') as f:
+                        similar_text = f.read()
+                except Exception:
+                    continue
+                
+                # Проверяем длину текста
+                if len(similar_text) < self.min_text_length:
+                    continue
+                
+                # Вычисляем схожесть на основе текста
+                text_similarity_result = self.calculate_text_similarity(document_text_clean, self.preprocess_text(similar_text))
+                similarity = text_similarity_result.get('overall_similarity', 0.0)
+                
+                # Добавляем документ, если схожесть выше порога
+                if similarity > self.similarity_threshold:
+                    similar_docs.append((doc, similarity))
+            
+            # Сортируем по убыванию схожести
+            similar_docs.sort(key=lambda x: x[1], reverse=True)
+            # Ограничиваем топ-10 для производительности
+            similar_docs = similar_docs[:10]
+            
+        except Exception as e:
+            print(f"Ошибка при текстовом поиске похожих документов: {e}")
         
         return similar_docs

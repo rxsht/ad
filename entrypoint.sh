@@ -9,8 +9,33 @@ while ! nc -z db 5432; do
 done
 echo "==> Database is ready!"
 
+echo "==> Installing pgvector extension..."
+# Парсим DATABASE_URL для получения учетных данных
+if [ -n "$DATABASE_URL" ]; then
+    DB_PARAMS=$(echo "$DATABASE_URL" | sed -e 's/postgres:\/\///' -e 's/@.*//')
+    DB_USER=$(echo "$DB_PARAMS" | cut -d: -f1)
+    DB_PASS=$(echo "$DB_PARAMS" | cut -d: -f2)
+    DB_NAME=$(echo "$DATABASE_URL" | sed -e 's/.*\///')
+    export PGPASSWORD=$DB_PASS
+    psql -h db -U "$DB_USER" -d "$DB_NAME" -c "CREATE EXTENSION IF NOT EXISTS vector;" || echo "Warning: Failed to create pgvector extension (may already exist)"
+else
+    export PGPASSWORD=${POSTGRES_PASSWORD}
+    psql -h db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "CREATE EXTENSION IF NOT EXISTS vector;" || echo "Warning: Failed to create pgvector extension (may already exist)"
+fi
+
 echo "==> Running migrations..."
 python Folder/manage.py migrate --noinput
+
+echo "==> Creating superuser (admin/admin)..."
+python Folder/manage.py shell << EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', '', 'admin')
+    print("✓ Superuser 'admin' created successfully!")
+else:
+    print("✓ Superuser 'admin' already exists")
+EOF
 
 echo "==> Collecting static files..."
 python Folder/manage.py collectstatic --noinput

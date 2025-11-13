@@ -2,6 +2,7 @@ Django==4.2.9
 psycopg2-binary==2.9.9
 pgvector==0.2.4
 gunicorn==21.2.0
+whitenoise==6.6.0
 pdfminer.six==20240706
 python-docx==1.1.0
 PyMuPDF==1.23.25

@@ -75,6 +75,7 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Для раздачи статических файлов в production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -195,6 +196,11 @@ STATIC_ROOT = Path(__file__).resolve().parent.parent / 'staticfiles'
 STATICFILES_DIRS = [
     Path(__file__).resolve().parent.parent / "static"
 ]
+
+# WhiteNoise настройки для раздачи статических файлов в production
+# WhiteNoise будет работать автоматически благодаря middleware
+# Можно добавить настройки для сжатия и кеширования
+WHITENOISE_USE_FINDERS = True  # Использовать finders для поиска статических файлов
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = Path(__file__).resolve().parent.parent / "media"

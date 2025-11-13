@@ -81,7 +81,7 @@ function displayFile(file) {
   };
   fileReader.readAsDataURL(file);
 }
-const isValid = file => file.type === 'application/pdf' && file.size <= 10485760;
+const isValid = file => file.type === 'application/pdf' && file.size <= 52428800;
 function isValidation(file) {
   if (isValid(file)) {
     displayFile(file);

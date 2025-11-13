@@ -1,8 +1,47 @@
 import re
 import numpy as np
-from sentence_transformers import SentenceTransformer
+import os
+import logging
 
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+logger = logging.getLogger(__name__)
+
+# Глобальная переменная для хранения модели (ленивая загрузка)
+_model = None
+MODEL_NAME = 'paraphrase-MiniLM-L6-v2'
+
+
+def get_model():
+    """
+    Получает модель SentenceTransformer с ленивой загрузкой.
+    Загружает модель только при первом вызове.
+    Использует кеш HuggingFace из переменных окружения или volume в Docker.
+    """
+    global _model
+    
+    if _model is None:
+        try:
+            # Устанавливаем пути к кешу HuggingFace из переменных окружения
+            # В Docker это будет /root/.cache/huggingface (настроено через volume hf_cache)
+            hf_home = os.environ.get('HF_HOME', os.environ.get('TRANSFORMERS_CACHE', '/root/.cache/huggingface'))
+            cache_dir = os.path.join(hf_home, 'hub')
+            os.makedirs(cache_dir, exist_ok=True)
+            
+            logger.info(f"Загрузка модели {MODEL_NAME} из кеша {hf_home}...")
+            from sentence_transformers import SentenceTransformer
+            # Модель автоматически использует кеш из переменных окружения
+            _model = SentenceTransformer(MODEL_NAME, cache_folder=hf_home)
+            logger.info(f"Модель {MODEL_NAME} успешно загружена (размер: ~80MB)")
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Ошибка при загрузке модели {MODEL_NAME}: {error_msg}")
+            
+            # Предупреждение, если модель не найдена в кеше
+            if "not found" in error_msg.lower() or "404" in error_msg:
+                logger.warning(f"Модель {MODEL_NAME} не найдена в кеше. При первом запуске она будет скачана из интернета.")
+            
+            raise RuntimeError(f"Не удалось загрузить модель векторизации {MODEL_NAME}: {error_msg}")
+    
+    return _model
 
 
 def extract_chapters_from_txt(txt_filename):
@@ -57,11 +96,19 @@ def process_text(txt_filename):
         sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
 
         if sentences:  # Только если есть предложения
-            # Генерация векторов для каждого предложения
-            sentence_vectors = [model.encode(sentence) for sentence in sentences]
+            try:
+                # Получаем модель (ленивая загрузка)
+                model = get_model()
+                # Генерация векторов для каждого предложения
+                sentence_vectors = [model.encode(sentence) for sentence in sentences]
 
-            chapter_vector = np.mean(sentence_vectors, axis=0)
-            all_chapter_vectors.append(chapter_vector)
+                chapter_vector = np.mean(sentence_vectors, axis=0)
+                all_chapter_vectors.append(chapter_vector)
+            except Exception as e:
+                logger.error(f"Ошибка при векторизации предложений: {e}")
+                # Продолжаем обработку, даже если векторизация не удалась
+                # Это позволит обработать остальные главы
+                pass
 
     # Усредняем векторы для всех глав, чтобы получить финальный вектор документа
     if all_chapter_vectors:
