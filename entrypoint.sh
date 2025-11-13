@@ -30,11 +30,21 @@ echo "==> Creating superuser (admin123/admin123)..."
 python Folder/manage.py shell << EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin123').exists():
-    User.objects.create_superuser('admin123', '', 'admin123')
-    print("✓ Superuser 'admin123' created successfully!")
-else:
-    print("✓ Superuser 'admin123' already exists")
+try:
+    if not User.objects.filter(username='admin123').exists():
+        User.objects.create_superuser('admin123', '', 'admin123')
+        print("✓ Superuser 'admin123' created successfully!")
+    else:
+        print("✓ Superuser 'admin123' already exists")
+        # Обновляем пароль если пользователь уже существует
+        user = User.objects.get(username='admin123')
+        user.set_password('admin123')
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        print("✓ Password for 'admin123' updated to 'admin123'")
+except Exception as e:
+    print(f"Warning: Could not create/update superuser: {e}")
 EOF
 
 echo "==> Collecting static files..."
