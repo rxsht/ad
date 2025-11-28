@@ -2164,8 +2164,8 @@ main {
   grid-template-columns: 10% 42% 48%;
 }
 .cab--results .cab__header {
-  -ms-grid-columns: 7% 25% 12% 13% 32% 4%;
-  grid-template-columns: 7% 25% 12% 13% 32% 4%;
+  -ms-grid-columns: 7% 25% 12% 10% 10% 23% 4%;
+  grid-template-columns: 7% 25% 12% 10% 10% 23% 4%;
 }
 .cab__titles {
   display: -webkit-box;
@@ -2959,8 +2959,8 @@ main {
   -webkit-column-gap: 20px;
   -moz-column-gap: 20px;
   column-gap: 20px;
-  -ms-grid-columns: 7% 25% 12% 13% 32.5% 2% 1.5%;
-  grid-template-columns: 7% 25% 12% 13% 32.5% 2% 1.5%;
+  -ms-grid-columns: 7% 25% 12% 10% 10% 23% 2% 1.5%;
+  grid-template-columns: 7% 25% 12% 10% 10% 23% 2% 1.5%;
 }
 .cab-results__block div:nth-child(4) {
   margin-left: 25%;
@@ -2999,8 +2999,8 @@ main {
 @media screen and (max-width: 1600px) {
   .cab-results__block {
     padding: 9px 25px;
-    -ms-grid-columns: 7% 33.5% 15% 12% 18% 2% 1.5%;
-    grid-template-columns: 7% 33.5% 15% 12% 18% 2% 1.5%;
+    -ms-grid-columns: 7% 33.5% 12% 10% 10% 15% 2% 1.5%;
+    grid-template-columns: 7% 33.5% 12% 10% 10% 15% 2% 1.5%;
   }
 }
 @media screen and (max-width: 1100px) {
@@ -3458,6 +3458,14 @@ main {
               <div class="info__results-percent">{{doc_similarity|floatformat:2}}%</div>
             </div>
             <div class="info__results-item">
+              <div class="info__results-title">Цитирование</div>
+              <div class="info__results-bar info__results-bar--sov">
+                <div></div>
+                <div style="width: {{citations_percent}}%;"></div>
+              </div>
+              <div class="info__results-percent">{{citations_percent|floatformat:2}}%</div>
+            </div>
+            <div class="info__results-item">
               <div class="info__results-title">Оригинальность</div>
               <div class="info__results-bar info__results-bar--orig">
                 <div></div>
@@ -3468,6 +3476,29 @@ main {
           </div>
         </div>
       </div>
+
+      {% if source_matches %}
+      <div class="border"></div>
+      <div class="info-block">
+        <div class="info-block__title" style="margin-bottom: 2.54mm;">Источники:</div>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 2.54mm;">
+          <thead>
+            <tr style="border-bottom: 0.8mm solid #ebf1ff;">
+              <th style="text-align: left; padding: 1.27mm 0; font-size: 2.7mm; font-weight: 600; color: #03102c;">Источник</th>
+              <th style="text-align: right; padding: 1.27mm 0; font-size: 2.7mm; font-weight: 600; color: #03102c;">Доля</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for match in source_matches %}
+            <tr style="border-bottom: 0.4mm solid #ebf1ff;">
+              <td style="padding: 1.27mm 0; font-size: 2.7mm; color: #646464; font-weight: 500;">{{ match.document_name }}</td>
+              <td style="text-align: right; padding: 1.27mm 0; font-size: 2.7mm; color: #03102c; font-weight: 500;">{{ match.match_percent|floatformat:2 }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
 
       <div class="border"></div>
 
@@ -3508,7 +3539,7 @@ main {
     <div class="file__qr-blocks">
       <div class="file__qr-block">
         <div class="file__qr-block-img">
-          <img src="{% static 'assets/img/qr-code.png' %}" alt="QR код" />
+          <img src="{% url 'documents:qr_report' document.id %}" alt="QR код для проверки подлинности справки" />
         </div>
         <div class="file__qr-block-txt">
           Чтобы убедиться в подлинности справки, используйте QR-код, который содержит ссылку на справку.
@@ -3516,7 +3547,7 @@ main {
       </div>
       <div class="file__qr-block">
         <div class="file__qr-block-img">
-          <img src="{% static 'assets/img/qr-code.png' %}" alt="QR код" />
+          <img src="{% url 'documents:qr_original' document.id %}" alt="QR код для просмотра исходного документа" />
         </div>
         <div class="file__qr-block-txt">
           Чтобы просмотреть документ в репозитории БГУИР, используйте QR-код, который содержит ссылку на документ.

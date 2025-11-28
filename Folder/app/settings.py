@@ -33,6 +33,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-#uw1jpc^-n9834e=h1jyeq2d34
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+# Базовый внешний URL для генерации ссылок в QR-кодах (например, https://antiplagiat.bsuir.by)
+PUBLIC_BASE_URL = os.getenv('PUBLIC_BASE_URL', '').rstrip('/')
+
 # ALLOWED_HOSTS конфигурация
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
 

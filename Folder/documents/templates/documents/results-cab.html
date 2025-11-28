@@ -120,6 +120,14 @@
               </button>
             </div>
             <div class="cab__header-item">
+              <div class="cab__header-name">Цитирование</div>
+              <button type="button" class="cab__header-btn">
+                <svg>
+                  <use xlink:href"{%static "assets/img/sprite.svg"%}#table-btn"></use>
+                </svg>
+              </button>
+            </div>
+            <div class="cab__header-item">
               <div class="cab__header-name">Название</div>
             </div>
             <div class="cab__header-item">
@@ -152,7 +160,17 @@
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Оригинальность</div>
-                    <div class='js-modal-doc-orig'>{{document.result|floatformat:2}}</div>
+                    <div class='js-modal-doc-orig'>{{document.result|floatformat:2}}%</div>
+                  </div>
+                  <div class='cab-results__block-item'>
+                    <div>Цитирование</div>
+                    <div>
+                      {% if document.detailed_analysis and document.detailed_analysis.citations %}
+                        {{ document.detailed_analysis.citations|floatformat:2 }}%
+                      {% else %}
+                        0.00%
+                      {% endif %}
+                    </div>
                   </div>
                   <div class='cab-results__block-item'>
                     <div>Название</div>

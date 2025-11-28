@@ -37,6 +37,74 @@ def calculate_originality_large_texts(user_doc, similar_docs, shingle_size=5):
 
     return originality
 
+def calculate_similarity_by_source(user_doc, similar_doc, shingle_size=5):
+    """
+    Рассчитывает процент совпадений между проверяемым документом и одним источником.
+    Возвращает процент совпадений (0-100).
+    
+    Args:
+        user_doc: Текст проверяемого документа
+        similar_doc: Текст источника для сравнения
+        shingle_size: Размер шинглов (по умолчанию 5)
+    
+    Returns:
+        float: Процент совпадений от 0 до 100
+    """
+    if not user_doc or not similar_doc:
+        return 0.0
+    
+    if not isinstance(user_doc, str) or not isinstance(similar_doc, str):
+        return 0.0
+    
+    user_shingles = generate_hashed_shingles(user_doc, shingle_size)
+    source_shingles = generate_hashed_shingles(similar_doc, shingle_size)
+    
+    if not user_shingles or not source_shingles:
+        return 0.0
+    
+    similarity = coef_similarity_hashed(user_shingles, source_shingles)
+    similarity_percent = similarity * 100
+    
+    return max(0.0, min(100.0, similarity_percent))  # Ограничиваем от 0 до 100
+
+def detect_citations(user_doc, similar_doc, shingle_size=3):
+    """
+    Определяет процент цитирований (короткие совпадения, которые могут быть цитатами).
+    Использует меньший размер шинглов для выявления коротких совпадений.
+    
+    Цитирования рассчитываются как процент совпавших коротких шинглов от общего 
+    количества шинглов проверяемого документа. Это позволяет выявить точные 
+    совпадения коротких фрагментов текста.
+    
+    Args:
+        user_doc: Текст проверяемого документа
+        similar_doc: Текст источника для сравнения
+        shingle_size: Размер шинглов для цитирований (по умолчанию 3, меньше чем для общих совпадений)
+    
+    Returns:
+        float: Процент цитирований от 0 до 100
+    """
+    if not user_doc or not similar_doc:
+        return 0.0
+    
+    if not isinstance(user_doc, str) or not isinstance(similar_doc, str):
+        return 0.0
+    
+    user_shingles = generate_hashed_shingles(user_doc, shingle_size)
+    source_shingles = generate_hashed_shingles(similar_doc, shingle_size)
+    
+    if not user_shingles:
+        return 0.0
+    
+    # Находим короткие совпадения (потенциальные цитаты)
+    short_matches = user_shingles & source_shingles
+    
+    # Рассчитываем процент цитирований относительно общего объема текста проверяемого документа
+    # Это показывает, какая доля текста пользователя совпадает с источником
+    citation_percent = (len(short_matches) / len(user_shingles)) * 100
+    
+    return max(0.0, min(100.0, citation_percent))  # Ограничиваем от 0 до 100
+
 # Пример использования
 # 
 # user_document = """

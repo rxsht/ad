@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import auth, messages
 
 
-from django.http import HttpResponse, HttpResponseRedirect 
-from django.urls import reverse,reverse_lazy
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.http import JsonResponse
@@ -16,8 +16,13 @@ from documents.utils import q_search
 from documents.utils import q_search_by_fio
 from django.core.paginator import Paginator
 
+from io import BytesIO
+import qrcode
+from django.conf import settings
+
 # Импорт Celery задачи
 from documents.tasks import process_document_plagiarism
+
 
 def download_file(request, document_id):
     document = Document.objects.get(id=document_id)
@@ -27,13 +32,78 @@ def download_file(request, document_id):
     result_float = float(result_value) if result_value is not None else 0.0
     result_int = int(result_float)
     
+    # Получаем данные о совпадениях и цитированиях из detailed_analysis
+    source_matches = []
+    citations_percent = 0.0
+    
+    if document.detailed_analysis:
+        source_matches = document.detailed_analysis.get('source_matches', [])
+        citations_percent = document.detailed_analysis.get('citations', 0.0)
+    
     context = {
         'document': document,
         'result': result_int,
         'similarity': 100 - result_int,
-        'doc_similarity': round(100 - result_float, 2) if result_value is not None else 100,  
+        'doc_similarity': round(100 - result_float, 2) if result_value is not None else 100,
+        'source_matches': source_matches,
+        'citations_percent': round(citations_percent, 2),
     }
     return render(request, 'documents/file.html', context)
+
+
+def _build_absolute_url(request, path: str) -> str:
+    """
+    Вспомогательная функция для построения абсолютного URL по относительному пути.
+    Если задан PUBLIC_BASE_URL в настройках, используется он (для генерации ссылок не на localhost).
+    Иначе — стандартная схема + хост из текущего запроса.
+    """
+    public_base = getattr(settings, 'PUBLIC_BASE_URL', '').rstrip('/')
+    if public_base:
+        return f"{public_base}{path}"
+
+    scheme = request.scheme
+    host = request.get_host()
+    return f"{scheme}://{host}{path}"
+
+
+def qr_report(request, document_id):
+    """
+    Возвращает PNG с QR-кодом, который ведет на страницу отчета по документу.
+    Этот QR-код используется в печатной версии отчета.
+    """
+    document = get_object_or_404(Document, id=document_id)
+
+    report_path = reverse('documents:download_file', args=[document_id])
+    report_url = _build_absolute_url(request, report_path)
+
+    qr_img = qrcode.make(report_url)
+    buffer = BytesIO()
+    qr_img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
+
+
+def qr_original(request, document_id):
+    """
+    Возвращает PNG с QR-кодом, который ведет на исходный файл документа
+    (docx/pdf и т.п.), чтобы его можно было скачать или просмотреть.
+    """
+    document = get_object_or_404(Document, id=document_id)
+
+    if not document.data:
+        return HttpResponse(status=404)
+
+    file_url = document.data.url
+    # Строим абсолютный URL до файла
+    absolute_file_url = _build_absolute_url(request, file_url)
+
+    qr_img = qrcode.make(absolute_file_url)
+    buffer = BytesIO()
+    qr_img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
 
 @login_required
 def change_status(request, document_id):
@@ -70,6 +140,20 @@ def send_to_defense(request, document_id):
     
     document = get_object_or_404(Document, id=document_id, user=request.user)
     
+    # Проверяем, нет ли уже другой работы пользователя, отправленной на защиту
+    existing_on_defense = Document.objects.filter(
+        user=request.user,
+        on_defense=True
+    ).exclude(id=document_id).first()
+
+    if existing_on_defense:
+        messages.warning(
+            request,
+            f'У вас уже есть работа "{existing_on_defense.name}", отправленная на защиту. '
+            f'Сначала снимите её с защиты, чтобы отправить другую.'
+        )
+        return redirect('documents:cabinet')
+
     # Проверяем, что документ уже проверен
     if document.processing_status != 'completed':
         messages.warning(request, 'Документ еще не обработан')

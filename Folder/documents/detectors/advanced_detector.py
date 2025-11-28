@@ -13,7 +13,9 @@ from documents.models import Document
 from documents.sim_cos import (
     calculate_originality_large_texts, 
     generate_hashed_shingles, 
-    coef_similarity_hashed
+    coef_similarity_hashed,
+    calculate_similarity_by_source,
+    detect_citations
 )
 from documents.utils_cache import get_cached_vector, cache_vector, get_cached_similarity, cache_similarity_result
 from .base_detector import BasePlagiarismDetector
@@ -165,6 +167,8 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             if not similar_docs:
                 result['originality'] = 100.0
                 result['similarity'] = 0.0
+                result['citations'] = 0.0
+                result['source_matches'] = []
                 result['message'] = 'Документ оригинален - похожих документов не найдено'
                 result['plagiarism_risk'] = 'very_low'
             else:
@@ -205,17 +209,58 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                     # Рассчитываем оригинальность для КАЖДОГО похожего документа отдельно
                     # и берём МИНИМАЛЬНУЮ (худший случай)
                     originality_scores = []
-                    for similar_text in similar_texts:
-                        originality = calculate_originality_large_texts(
-                            document_text, 
-                            [similar_text],  # Сравниваем с ОДНИМ документом
-                            shingle_size=3
-                        )
-                        originality_scores.append(originality)
+                    source_matches = []  # Список совпадений по источникам
+                    
+                    for idx, (doc, vector_sim) in enumerate(similar_docs):
+                        if idx < len(similar_texts):
+                            similar_text = similar_texts[idx]
+                            
+                            # Рассчитываем оригинальность
+                            originality = calculate_originality_large_texts(
+                                document_text, 
+                                [similar_text],  # Сравниваем с ОДНИМ документом
+                                shingle_size=3
+                            )
+                            originality_scores.append(originality)
+                            
+                            # Рассчитываем процент совпадений с этим источником
+                            match_percent = calculate_similarity_by_source(
+                                document_text,
+                                similar_text,
+                                shingle_size=3
+                            )
+                            
+                            # Рассчитываем процент цитирований
+                            citation_percent = detect_citations(
+                                document_text,
+                                similar_text,
+                                shingle_size=3
+                            )
+                            
+                            # Сохраняем информацию об источнике
+                            source_matches.append({
+                                'document_id': doc.id,
+                                'document_name': doc.name,
+                                'match_percent': round(match_percent, 2),
+                                'citation_percent': round(citation_percent, 2)
+                            })
                     
                     # Берём минимальную оригинальность (максимальную схожесть)
                     result['originality'] = max(0.0, min(100.0, min(originality_scores)))
                     result['similarity'] = 100 - result['originality']
+                    
+                    # Рассчитываем общий процент цитирований
+                    # Используем максимум из всех источников, так как цитирования могут перекрываться
+                    # и сумма может превышать 100%
+                    if source_matches:
+                        # Берем максимальный процент цитирований среди всех источников
+                        max_citation_percent = max([match['citation_percent'] for match in source_matches], default=0.0)
+                        # Ограничиваем цитирования общим процентом совпадений
+                        result['citations'] = round(min(max_citation_percent, result['similarity']), 2)
+                        result['source_matches'] = source_matches
+                    else:
+                        result['citations'] = 0.0
+                        result['source_matches'] = []
                     
                     # Определяем риск плагиата
                     max_similarity = max(similarities) if similarities else 0
@@ -254,6 +299,8 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                 else:
                     result['originality'] = 100.0
                     result['similarity'] = 0.0
+                    result['citations'] = 0.0
+                    result['source_matches'] = []
                     result['message'] = 'Документ оригинален - не удалось прочитать похожие документы'
                     result['plagiarism_risk'] = 'very_low'
             
@@ -291,7 +338,10 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             if current_vector is None:
                 return similar_docs
             
-            all_docs = Document.objects.exclude(id=document.id).exclude(vector__isnull=True)
+            # Берём только документы из общей базы (исключаем работы текущего пользователя)
+            all_docs = Document.objects.exclude(id=document.id)\
+                                       .exclude(vector__isnull=True)\
+                                       .exclude(user=document.user)
             
             for doc in all_docs:
                 # Проверяем кэш схожести
@@ -341,10 +391,11 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             # Предобрабатываем текст документа
             document_text_clean = self.preprocess_text(document_text)
             
-            # Получаем ограниченное количество документов с TXT файлами
-            all_docs = Document.objects.exclude(id=document.id).filter(
-                txt_file__isnull=False
-            ).exclude(txt_file='')[:max_docs]
+            # Получаем ограниченное количество документов из общей базы (без работ текущего пользователя)
+            all_docs = Document.objects.exclude(id=document.id)\
+                                       .exclude(user=document.user)\
+                                       .filter(txt_file__isnull=False)\
+                                       .exclude(txt_file='')[:max_docs]
             
             for doc in all_docs:
                 if not doc.txt_file:
