@@ -130,6 +130,46 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
                 'message': ''
             }
             
+            # --- ПРОВЕРКА ПО ИМЕНИ ФАЙЛА: если есть дубликаты по имени в общей базе → 0% ---
+            # Общая база: документы с on_defense=True
+            if document.data:
+                try:
+                    current_file_name = os.path.basename(document.data.name)
+                    # Берём все документы из общей базы (отправленные на защиту), кроме текущего
+                    all_docs_with_files = Document.objects.filter(on_defense=True)\
+                                                           .exclude(id=document.id)\
+                                                           .exclude(data='')\
+                                                           .exclude(data__isnull=True)
+
+                    exact_duplicates = []
+                    for d in all_docs_with_files:
+                        try:
+                            if d.data:
+                                other_file_name = os.path.basename(d.data.name)
+                                if other_file_name == current_file_name:
+                                    exact_duplicates.append(d)
+                        except Exception:
+                            continue
+
+                    if exact_duplicates:
+                        # Есть документы с таким же именем файла в общей базе → оригинальность 0%
+                        result['originality'] = 0.0
+                        result['similarity'] = 100.0
+                        result['is_plagiarized'] = True
+                        result['plagiarism_risk'] = 'very_high'
+                        result['message'] = f'Найден(ы) документ(ы) с таким же именем файла ({current_file_name}) в общей базе. Оригинальность: 0%.'
+                        result['source_matches'] = [
+                            {
+                                'document_id': d.id,
+                                'document_name': d.name,
+                                'file_name': current_file_name,
+                            }
+                            for d in exact_duplicates
+                        ]
+                        return result
+                except Exception as e:
+                    print(f"Ошибка при проверке имени файла: {e}")
+            
             # Проверяем наличие TXT файла
             if not document.txt_file:
                 result['status'] = 'error'
@@ -338,10 +378,11 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             if current_vector is None:
                 return similar_docs
             
-            # Берём только документы из общей базы (исключаем работы текущего пользователя)
+            # Берём только документы из общей базы (отправленные на защиту)
+            # Документы пользователя также могут быть источниками (сравниваются между собой)
             all_docs = Document.objects.exclude(id=document.id)\
                                        .exclude(vector__isnull=True)\
-                                       .exclude(user=document.user)
+                                       .filter(on_defense=True)
             
             for doc in all_docs:
                 # Проверяем кэш схожести
@@ -391,9 +432,10 @@ class AdvancedPlagiarismDetector(BasePlagiarismDetector):
             # Предобрабатываем текст документа
             document_text_clean = self.preprocess_text(document_text)
             
-            # Получаем ограниченное количество документов из общей базы (без работ текущего пользователя)
+            # Получаем ограниченное количество документов из общей базы (отправленные на защиту)
+            # Документы пользователя также могут быть источниками (сравниваются между собой)
             all_docs = Document.objects.exclude(id=document.id)\
-                                       .exclude(user=document.user)\
+                                       .filter(on_defense=True)\
                                        .filter(txt_file__isnull=False)\
                                        .exclude(txt_file='')[:max_docs]
             
